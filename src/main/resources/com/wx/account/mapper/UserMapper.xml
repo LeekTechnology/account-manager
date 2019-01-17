@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wx.account.mapper.UserMapper">
+  <resultMap id="BaseResultMap" type="com.wx.account.model.User">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="sex" jdbcType="TINYINT" property="sex" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, name, sex
+  </sql>
+
+  <select id="getUserByName" parameterType="com.wx.account.model.User" resultType="com.wx.account.model.User">
+    select
+    <include refid="Base_Column_List"/>
+    from `user` where 1=1 and `name` = #{name}
+  </select>
+</mapper>
