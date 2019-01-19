@@ -84,23 +84,34 @@
 			<version>1.16.20</version>
 			<optional>true</optional>
 		</dependency>
-
-		<!-- utils -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.4</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.2</version>
-		</dependency>
 		<!--guava-->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>18.0</version>
+		</dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+			<version>1.4.10</version>
+		</dependency>
+
+		<!--工具类 hutool-http组件-->
+		<dependency>
+			<groupId>cn.hutool</groupId>
+			<artifactId>hutool-http</artifactId>
+			<version>4.4.2</version>
+		</dependency>
+		<!--包括Bean操作、日期、各种Util等-->
+		<dependency>
+			<groupId>cn.hutool</groupId>
+			<artifactId>hutool-core</artifactId>
+			<version>4.4.2</version>
 		</dependency>
 
 	</dependencies>
