@@ -19,13 +19,6 @@ public class ConstantUtils {
 
     public static String accessToken;
 
-    //获取accessToken--url
-    public static final String accessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
-
-    //获取用户信息url --url
-    public static final String userInfoUrl = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN";
-
-
     @Value("${wx.token}")
     public void setToken(String token) {
         ConstantUtils.token = token;
@@ -54,4 +47,30 @@ public class ConstantUtils {
     public static String DATE_DB_PATTERN = "yyyy-MM-dd";
     public static String TIME_REQ_PATTERN = "yyyyMMddHHmmss";
     public static String TIME_DB_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+
+    /**
+     * 公众号名称
+     */
+    public static final String ACCOUNT_NAME = "楠木科技";
+
+
+    /**
+     * 链接信息
+     */
+    //获取accessToken--url
+    public static final String accessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
+
+    //获取用户信息url --url
+    public static final String userInfoUrl = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN";
+
+    //永久二维码ticket --info
+    public static final String ticketInfo = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s";
+
+    //通过ticket换取二维码
+    public static final String ticketUrl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=%s";
+
+    //发送模板消息
+    public static final String templateSendUrl = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s";
+
 }

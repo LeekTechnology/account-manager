@@ -59,7 +59,7 @@ public class AccessTokenTask implements CommandLineRunner {
      * @param appsecret
      */
     private void initAccessToken(String appid, String appsecret) {
-        String url = ConstantUtils.accessTokenUrl.replace("APPID", appid).replace("APPSECRET", appsecret);
+        String url = String.format(ConstantUtils.accessTokenUrl,appid,appsecret);
         String result = HttpUtil.get(url);
         String accessToken = null;
         //判断json是否为空

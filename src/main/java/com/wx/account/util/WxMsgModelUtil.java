@@ -6,11 +6,14 @@ import com.wx.account.Message.WxMsgInfo;
 import com.wx.account.Message.messagepackage.Article;
 import com.wx.account.Message.messagepackage.NewsMessage;
 import com.wx.account.Message.messagepackage.TextMessage;
+import com.wx.account.dto.TicketInfo;
+import com.wx.account.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 封装微信回复消息，各种回复消息对应不同的方法
@@ -24,12 +27,11 @@ public class WxMsgModelUtil {
     private WxMsgUtil weixinMessageUtil;
 
 
-
     /**
      * @Description: 当系统出错时，默认回复的文本消息
      * @Return: 系统出错回复的消息
      */
-    public String systemErrorResponseMessageModel(WxMsgInfo wxMsgInfo ){
+    public String systemErrorResponseMessageModel(WxMsgInfo wxMsgInfo) {
 
         // 回复文本消息
         TextMessage textMessage = new TextMessage();
@@ -46,9 +48,8 @@ public class WxMsgModelUtil {
      * @Description: 用户关注时发送的图文消息
      * @Return: 用户关注后发送的提示绑定用户的图文消息
      */
-    public String followResponseMessageModel(WxMsgInfo wxMsgInfo){
-
-        // 关注时发送图文消息
+    public String followResponseMessageModel(WxMsgInfo wxMsgInfo, User user) {
+        // 关注之后向用户发送专属二维码
         NewsMessage newsMessage = new NewsMessage();
         newsMessage.setToUserName(wxMsgInfo.getFromUserName());
         newsMessage.setFromUserName(wxMsgInfo.getToUserName());
@@ -57,33 +58,23 @@ public class WxMsgModelUtil {
         newsMessage.setFuncFlag(0);
 
         // 图文消息
-        List<Article> articleList= Lists.newArrayList();
+        List<Article> articleList = Lists.newArrayList();
         Article article = new Article();
         // 设置图文消息的标题
-        String string = "送你送到小城外，有句话儿要交代";
-        article.setTitle(string);
+        String title = "欢迎 " + user.getNickname() + " 来到" + ConstantUtils.ACCOUNT_NAME;
+        article.setTitle(title);
+        article.setDescription("这是你的专属二维码,使用该二维码推广用户可以获得奖励哦>>>点击查看大图");
+
         //设置图文信息
-//        article.setPicUrl(webConfigBean.getWeixinPicture()+"meetingLogo2.png");
-//        article.setUrl(webConfigBean.getDoMainNameurl()+"/WeixinParticipantFouce");
+        //获取推广二维码
+        TicketInfo ticketInfo = TicketUtil.getTicketInfo(user.getOpenid());
+        article.setPicUrl(ticketInfo.getTicketUrl());
+        article.setUrl(ticketInfo.getTicketUrl());
         articleList.add(article);
+
         newsMessage.setArticleCount(articleList.size());
         newsMessage.setArticles(articleList);
         return weixinMessageUtil.newsMessageToXml(newsMessage);
-    }
-
-    /**
-     * @Description: 用户取消关注，先判断用户是否绑定，如果已经绑定则解除绑定
-     * @Return: void
-     */
-    public void cancelAttention(String fromUserName){
-
-//        if (userService.isAlreadyBinding(fromUserName)) {
-//            userService.userUnbinding(fromUserName);
-//        }else {
-//            System.out.println("取消关注用户{}"+fromUserName+"还未绑定");
-//        }
-        log.info(fromUserName);
-
     }
 
 }

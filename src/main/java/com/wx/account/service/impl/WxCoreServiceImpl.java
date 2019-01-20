@@ -1,12 +1,18 @@
 package com.wx.account.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.wx.account.Message.WxMsgInfo;
 import com.wx.account.Message.messagepackage.TextMessage;
+import com.wx.account.common.enums.SpreadType;
+import com.wx.account.common.enums.TemplateType;
+import com.wx.account.dto.TicketInfo;
+import com.wx.account.mapper.UserMapper;
+import com.wx.account.mapper.UserOtherMapper;
+import com.wx.account.model.User;
+import com.wx.account.model.UserOther;
 import com.wx.account.service.WxCoreService;
-import com.wx.account.util.ConstantUtils;
-import com.wx.account.util.WxMsgModelUtil;
-import com.wx.account.util.WxMsgUtil;
+import com.wx.account.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,9 +33,12 @@ public class WxCoreServiceImpl implements WxCoreService {
     @Autowired
     private WxMsgInfo wxMsgInfo;
     @Autowired
+    private WxMsgUtil weixinMessageUtil;
+    @Autowired
     private WxMsgModelUtil wxMsgModelUtil;
     @Autowired
     private UserServiceImpl userService;
+
 
 
     @Override
@@ -113,20 +122,25 @@ public class WxCoreServiceImpl implements WxCoreService {
 
                 // 事件类型
                 String eventType = map.get("Event");
-                log.info("eventType------>" + eventType);
+                String eventKey = map.get("EventKey");//enum定义的动作标识
+                log.info("eventType------>" + eventType + "and eventKey------>" + eventKey);
                 // 关注
                 if (eventType.equals(wxMsgUtil.EVENT_TYPE_SUBSCRIBE)) {
-                    //保存关注人员的信息
-                    userService.saveWxUser(fromUserName);
-                    respMessage = wxMsgModelUtil.followResponseMessageModel(wxMsgInfo);
+                    respMessage = subscribeAction(wxMsgInfo, map.get("Ticket"));
                 }
                 // 取消关注
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_UNSUBSCRIBE)) {
-                    wxMsgModelUtil.cancelAttention(fromUserName);
+                    userService.unSubscribe(fromUserName);
+                    respContent = fromUserName+"用户取消关注";
+                    log.info("取消关注: openid is "+fromUserName);
+                    textMessage.setContent(respContent);
+                    respMessage = wxMsgUtil.textMessageToXml(textMessage);
                 }
                 // 扫描带参数二维码
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN)) {
-                    log.info("扫描带参数二维码");
+                    if(!StrUtil.isBlank(eventKey)){
+                        respMessage = subscribeAction(wxMsgInfo,map.get("Ticket"));
+                    }
                 }
                 // 上报地理位置
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_LOCATION)) {
@@ -136,7 +150,6 @@ public class WxCoreServiceImpl implements WxCoreService {
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_CLICK)) {
 
                     // 事件KEY值，与创建自定义菜单时指定的KEY值对应
-                    String eventKey = map.get("EventKey");
                     log.info("eventKey------->" + eventKey);
 
                 }
@@ -159,5 +172,54 @@ public class WxCoreServiceImpl implements WxCoreService {
         return respMessage;
     }
 
+
+    /**
+     * 用户关注公众号时的动作
+     * 包含主动关注,扫描二维码关注
+     *
+     * @param wxMsgInfo
+     * @param ticket 推广人的ticket
+     * @return
+     */
+    public String subscribeAction(WxMsgInfo wxMsgInfo, String ticket) {
+        String respMessage = null;
+        //获取用于推广的二维码信息
+        TicketInfo ticketInfo = TicketUtil.getTicketInfo(wxMsgInfo.getFromUserName());
+        //保存关注人员的信息
+        User user = userService.saveWxUser(wxMsgInfo.getFromUserName(), ticketInfo);
+
+        if(!StrUtil.isBlank(ticket)){
+            //单独向推广人发送文本消息
+            dealwithSpreadMessage(user,ticket,wxMsgInfo.getToUserName());
+        }
+
+        //返回欢迎信息和转发二维码
+        respMessage = wxMsgModelUtil.followResponseMessageModel(wxMsgInfo, user);
+        return respMessage;
+    }
+
+    /**
+     * 处理返回推广者消息
+     * @param user 订阅用户,被推广者
+     * @param ticket 推广者ticket
+     * @param serviceName 服务号名称
+     */
+    private void dealwithSpreadMessage(User user, String ticket, String serviceName) {
+        //查询推广人信息
+        User spreadUser = userService.getUserByTicket(ticket);
+        if(spreadUser == null){
+            return;
+        }
+        //插入推广信息
+        UserOther uo = new UserOther();
+        uo.setOpenid(user.getOpenid());
+        uo.setSubscribe_scene(wxMsgUtil.EVENT_TYPE_SCAN);
+        uo.setReference(spreadUser.getOpenid());
+        userService.insertSpreadInfo(uo);
+
+        //查询推广人的推广次数
+        Integer spreadNum = userService.querySpreadNum(spreadUser.getOpenid());
+        TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(),user.getNickname(),spreadNum,spreadUser.getOpenid());
+    }
 
 }

@@ -3,16 +3,38 @@
 <mapper namespace="com.wx.account.mapper.UserMapper">
   <resultMap id="BaseResultMap" type="com.wx.account.model.User">
     <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="sex" jdbcType="TINYINT" property="sex" />
+    <result column="openid" jdbcType="VARCHAR" property="openid" />
+    <result column="nickname" jdbcType="VARCHAR" property="nickname" />
+    <result column="sex" jdbcType="BIT" property="sex" />
+    <result column="city" jdbcType="VARCHAR" property="city" />
+    <result column="country" jdbcType="VARCHAR" property="country" />
+    <result column="province" jdbcType="VARCHAR" property="province" />
+    <result column="headimgurl" jdbcType="VARCHAR" property="headimgurl" />
+    <result column="ticket" jdbcType="VARCHAR" property="ticket" />
+    <result column="subscribe_time" jdbcType="TIMESTAMP" property="subscribe_time" />
+    <result column="status" jdbcType="BIT" property="status" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, name, sex
+    id, openid, nickname, sex, city, country, province, headimgurl, ticket, subscribe_time, status
   </sql>
 
-  <select id="getUserByName" parameterType="com.wx.account.model.User" resultType="com.wx.account.model.User">
-    select
+  <insert id="insert" parameterType="com.wx.account.model.User">
+    insert into user (id, openid, nickname, 
+      sex, city, country, province, 
+      headimgurl,ticket, subscribe_time
+      )
+    values (#{id,jdbcType=BIGINT}, #{openid,jdbcType=VARCHAR}, #{nickname,jdbcType=VARCHAR}, 
+      #{sex,jdbcType=BIT}, #{city,jdbcType=VARCHAR}, #{country,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, 
+      #{headimgurl,jdbcType=VARCHAR},#{ticket,jdbcType=VARCHAR}, #{subscribe_time,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <update id="unSubscribe">
+    UPDATE `user` set `status` = 1 where openid = #{openid};
+  </update>
+
+  <select id="getUserByTicket" resultType="com.wx.account.model.User">
+    SELECT
     <include refid="Base_Column_List"/>
-    from `user` where 1=1 and `name` = #{name}
+    FROM `user` where ticket = #{ticket} and `status` = 0 ORDER BY subscribe_time desc limit 1
   </select>
 </mapper>
