@@ -9,7 +9,12 @@ import com.wx.account.mapper.UserOtherMapper;
 import com.wx.account.model.User;
 import com.wx.account.model.UserOther;
 import com.wx.account.util.ConstantUtils;
+import com.wx.account.util.WxMsgUtil;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +27,7 @@ import java.util.Map;
 @Slf4j
 @Service
 public class UserServiceImpl {
-
+	private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
