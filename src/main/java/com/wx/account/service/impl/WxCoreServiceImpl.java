@@ -14,6 +14,9 @@ import com.wx.account.model.UserOther;
 import com.wx.account.service.WxCoreService;
 import com.wx.account.util.*;
 import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +30,7 @@ import java.util.*;
 @Slf4j
 @Service
 public class WxCoreServiceImpl implements WxCoreService {
-
+	private static final Logger log = LoggerFactory.getLogger(WxCoreServiceImpl.class);
     @Autowired
     private WxMsgUtil wxMsgUtil;
     @Autowired
@@ -122,6 +125,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 
                 // 事件类型
                 String eventType = map.get("Event");
+                
                 String eventKey = map.get("EventKey");//enum定义的动作标识
                 log.info("eventType------>" + eventType + "and eventKey------>" + eventKey);
                 // 关注
@@ -141,6 +145,12 @@ public class WxCoreServiceImpl implements WxCoreService {
                     if(!StrUtil.isBlank(eventKey)){
                         respMessage = subscribeAction(wxMsgInfo,map.get("Ticket"));
                     }
+                }
+                else if(eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN_SELF)) {
+                	log.info("本人扫描自己的二维码");
+                	respContent = "亲，您已经关注了！<a href = 'https://www.baidu.com/'>点击</a>";
+                    textMessage.setContent(respContent);
+                    respMessage = wxMsgUtil.textMessageToXml(textMessage);
                 }
                 // 上报地理位置
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_LOCATION)) {
