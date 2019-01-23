@@ -63,7 +63,7 @@ public class WxMsgModelUtil {
         // 设置图文消息的标题
         String title = "欢迎 " + user.getNickname() + " 来到" + ConstantUtils.ACCOUNT_NAME;
         article.setTitle(title);
-        String text = "嗨，"+user.getNickname()+"，一场高端而又有趣的任务宝之旅正在为你展开。。。\n" +
+        String text = "嗨hahaha ，"+user.getNickname()+"，一场高端而又有趣的任务宝之旅正在为你展开。。。\n" +
                 "成功邀请 10 个好友扫码你的专属任务海报并关注我们，即可拿走A6一辆！\n" +
                 "成功邀请 20 个好友扫码你的专属任务海报并关注我们，即可拿走A8一辆！\n" +
                 "\n" +
