@@ -63,7 +63,15 @@ public class WxMsgModelUtil {
         // 设置图文消息的标题
         String title = "欢迎 " + user.getNickname() + " 来到" + ConstantUtils.ACCOUNT_NAME;
         article.setTitle(title);
-        article.setDescription("这是你的专属二维码,使用该二维码推广用户可以获得奖励哦>>>点击查看大图");
+        String text = "嗨，"+user.getNickname()+"，一场高端而又有趣的任务宝之旅正在为你展开。。。\n" +
+                "成功邀请 10 个好友扫码你的专属任务海报并关注我们，即可拿走A6一辆！\n" +
+                "成功邀请 20 个好友扫码你的专属任务海报并关注我们，即可拿走A8一辆！\n" +
+                "\n" +
+                "数量有限，需要你速战速决！\n" +
+                "\n" +
+                "\n" +
+                "即将为你生成专属任务海报↓↓↓";
+        article.setDescription(text);
 
         //设置图文信息
         //获取推广二维码
