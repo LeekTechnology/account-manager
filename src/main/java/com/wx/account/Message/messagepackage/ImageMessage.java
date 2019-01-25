@@ -11,5 +11,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class ImageMessage extends BaseMessage{
 
-    private Image image;
+    private Image Image = new Image();
 }

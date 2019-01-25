@@ -24,7 +24,6 @@ import java.util.Map;
  * 用户管理
  * Created by supermrl on 2019/1/19.
  */
-@Slf4j
 @Service
 public class UserServiceImpl {
 	private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);

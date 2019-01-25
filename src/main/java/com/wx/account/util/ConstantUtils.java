@@ -73,4 +73,7 @@ public class ConstantUtils {
     //发送模板消息
     public static final String templateSendUrl = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s";
 
+    //图片上传微信地址
+    public static final String UPLOAD_IMG_URL = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";
+
 }

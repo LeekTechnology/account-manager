@@ -2,19 +2,16 @@ package com.wx.account.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.wx.account.Message.WxMsgInfo;
+import com.wx.account.Message.messagepackage.Image;
+import com.wx.account.Message.messagepackage.ImageMessage;
 import com.wx.account.Message.messagepackage.TextMessage;
-import com.wx.account.common.enums.SpreadType;
-import com.wx.account.common.enums.TemplateType;
 import com.wx.account.dto.TicketInfo;
-import com.wx.account.mapper.UserMapper;
-import com.wx.account.mapper.UserOtherMapper;
 import com.wx.account.model.User;
 import com.wx.account.model.UserOther;
 import com.wx.account.service.WxCoreService;
 import com.wx.account.util.*;
-import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +19,18 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Map;
 
 /**
  * Created by supermrl on 2019/1/19.
  */
-@Slf4j
+
 @Service
 public class WxCoreServiceImpl implements WxCoreService {
 	private static final Logger log = LoggerFactory.getLogger(WxCoreServiceImpl.class);
@@ -80,9 +83,27 @@ public class WxCoreServiceImpl implements WxCoreService {
 
             // 文本消息
             if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_TEXT)) {
-                respContent = "亲，这是文本消息！";
+                /*respContent = "亲，这是文本消息！";
                 textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);
+                respMessage = wxMsgUtil.textMessageToXml(textMessage);*/
+
+                String infoUrl = String.format(ConstantUtils.ticketInfo, ConstantUtils.accessToken);
+                QrCodeUtil.createQrCodeImage(infoUrl, "G:\\image\\9.png", "G:\\image\\2.png" , 300, 300);
+                QrCodeUtil.addLogoToQRCode(new File("G:\\image\\6.png"), new File("G:\\image\\9.png"), new LogoConfig());
+
+                JSONObject json = upload("G:\\image\\6.png ", ConstantUtils.accessToken, "image");
+                String mediaId = json.get("media_id").toString();
+                String createdAt = json.get("created_at").toString();
+
+                ImageMessage imageMessage = new ImageMessage();
+                imageMessage.setToUserName(fromUserName);
+                imageMessage.setFromUserName(toUserName);
+                imageMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_IMAGE);
+                imageMessage.setCreateTime(Long.valueOf(createdAt));
+                Image image = imageMessage.getImage();
+                image.setMediaId(mediaId);
+
+                respMessage = wxMsgUtil.imageMessageToXml(imageMessage);
             }
 
             // 图片消息
@@ -146,12 +167,12 @@ public class WxCoreServiceImpl implements WxCoreService {
                         respMessage = subscribeAction(wxMsgInfo,map.get("Ticket"));
                     }
                 }
-                else if(eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN_SELF)) {
+                /*else if(eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN_SELF)) {
                 	log.info("本人扫描自己的二维码");
                 	respContent = "亲，您已经关注了！<a href = 'https://www.baidu.com/'>点击</a>";
                     textMessage.setContent(respContent);
                     respMessage = wxMsgUtil.textMessageToXml(textMessage);
-                }
+                }*/
                 // 上报地理位置
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_LOCATION)) {
                     log.info("上报地理位置");
@@ -230,6 +251,92 @@ public class WxCoreServiceImpl implements WxCoreService {
         //查询推广人的推广次数
         Integer spreadNum = userService.querySpreadNum(spreadUser.getOpenid());
         TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(),user.getNickname(),spreadNum,spreadUser.getOpenid());
+    }
+
+    /**
+     * 上传本地文件到微信获取mediaId
+     */
+
+    private static JSONObject upload(String filePath, String accessToken, String type) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, KeyManagementException {
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new IOException("文件不存在");
+        }
+
+        String url = ConstantUtils.UPLOAD_IMG_URL.replace("ACCESS_TOKEN", accessToken).replace("TYPE", type);
+
+        URL urlObj = new URL(url);
+        //连接
+        HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
+
+        con.setRequestMethod("POST");
+        con.setDoInput(true);
+        con.setDoOutput(true);
+        con.setUseCaches(false);
+
+        //设置请求头信息
+        con.setRequestProperty("Connection", "Keep-Alive");
+        con.setRequestProperty("Charset", "UTF-8");
+
+        //设置边界
+        String BOUNDARY = "----------" + System.currentTimeMillis();
+        con.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("--");
+        sb.append(BOUNDARY);
+        sb.append("\r\n");
+        sb.append("Content-Disposition: form-data;name=\"file\";filename=\"" + file.getName() + "\"\r\n");
+        sb.append("Content-Type:application/octet-stream\r\n\r\n");
+
+        byte[] head = sb.toString().getBytes("utf-8");
+
+        //获得输出流
+        OutputStream out = new DataOutputStream(con.getOutputStream());
+        //输出表头
+        out.write(head);
+
+        //文件正文部分
+        //把文件已流文件的方式 推入到url中
+        DataInputStream in = new DataInputStream(new FileInputStream(file));
+        int bytes = 0;
+        byte[] bufferOut = new byte[1024];
+        while ((bytes = in.read(bufferOut)) != -1) {
+            out.write(bufferOut, 0, bytes);
+        }
+        in.close();
+
+        //结尾部分
+        byte[] foot = ("\r\n--" + BOUNDARY + "--\r\n").getBytes("utf-8");//定义最后数据分隔线
+
+        out.write(foot);
+
+        out.flush();
+        out.close();
+
+        StringBuffer buffer = new StringBuffer();
+        BufferedReader reader = null;
+        String result = null;
+        try {
+            //定义BufferedReader输入流来读取URL的响应
+            reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line);
+            }
+            if (result == null) {
+                result = buffer.toString();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+        }
+
+        JSONObject json = JSONObject.parseObject(result);
+        return json;
     }
 
 }
