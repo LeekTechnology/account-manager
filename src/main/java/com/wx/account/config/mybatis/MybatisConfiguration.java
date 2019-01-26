@@ -5,6 +5,8 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.boot.autoconfigure.MybatisProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -23,8 +25,10 @@ import javax.sql.DataSource;
 //@EnableConfigurationProperties(MybatisProperties.class)
 //@EnableTransactionManagement
 //@AutoConfigureAfter({DruidDataSourceConfiguration.class, MybatisAutoConfiguration.class})
-@Slf4j
 public class MybatisConfiguration implements TransactionManagementConfigurer {
+
+    private static Logger log = LoggerFactory.getLogger(MybatisConfiguration.class);
+
 
     @Autowired
     private MybatisProperties properties;

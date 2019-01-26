@@ -4,17 +4,20 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Strings;
 import com.wx.account.common.enums.TemplateType;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 模板消息
  * Created by supermrl on 2019/1/20.
  */
-@Slf4j
 public class TemplateUtil {
 
 
+    private static Logger log = LoggerFactory.getLogger(TemplateUtil.class);
     /**
      * 发送模板消息
      * @param spreadName
@@ -50,7 +53,7 @@ public class TemplateUtil {
         String sendSpreadTemplateUrl = String.format(ConstantUtils.templateSendUrl,ConstantUtils.accessToken);
         log.info("send spreadUser message body is "+json.toJSONString());
         String result = HttpUtil.post(sendSpreadTemplateUrl, json.toJSONString());
-        if(!StrUtil.isBlank(result)){
+        if(!Strings.isNullOrEmpty(result)){
             JSONObject resultJson = JSONObject.parseObject(result);
             String errcode = resultJson.get("errcode").toString();
             if(!"0".equals(errcode)){

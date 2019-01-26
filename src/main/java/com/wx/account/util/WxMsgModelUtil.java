@@ -9,6 +9,8 @@ import com.wx.account.Message.messagepackage.TextMessage;
 import com.wx.account.dto.TicketInfo;
 import com.wx.account.model.User;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +21,10 @@ import java.util.Map;
  * 封装微信回复消息，各种回复消息对应不同的方法
  * Created by supermrl on 2019/1/19.
  */
-@Slf4j
 @Component
 public class WxMsgModelUtil {
+
+    private static Logger log = LoggerFactory.getLogger(WxMsgModelUtil.class);
 
     @Autowired
     private WxMsgUtil weixinMessageUtil;

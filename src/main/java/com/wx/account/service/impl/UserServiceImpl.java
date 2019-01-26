@@ -3,6 +3,7 @@ package com.wx.account.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Strings;
 import com.wx.account.dto.TicketInfo;
 import com.wx.account.mapper.UserMapper;
 import com.wx.account.mapper.UserOtherMapper;
@@ -26,7 +27,7 @@ import java.util.Map;
  */
 @Service
 public class UserServiceImpl {
-	private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -37,20 +38,25 @@ public class UserServiceImpl {
 
     /**
      * 保存订阅的用户信息
-     *  @param openid
+     *
+     * @param openid
      * @param ticketInfo
      */
     public User saveWxUser(String openid, TicketInfo ticketInfo) {
         User user = null;
-        String userInfoUrl = String.format(ConstantUtils.userInfoUrl,ConstantUtils.accessToken,openid);
+        String userInfoUrl = String.format(ConstantUtils.userInfoUrl, ConstantUtils.accessToken, openid);
+        //获取用户信息
         String result = HttpUtil.get(userInfoUrl);
         if (result != null) {
             JSONObject json = JSONObject.parseObject(result);
             try {
-                user = transJson2User(json,ticketInfo);
+                user = transJson2User(json, ticketInfo);
+                if (Strings.isNullOrEmpty(user.getOpenid())) {
+                    throw new Exception("获取用户信息失败");
+                }
                 int i = userMapper.insert(user);
                 if (i < 0) {
-                    log.error("sub user save is fail and user is "+user);
+                    log.error("sub user save is fail and user is " + user);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -65,7 +71,8 @@ public class UserServiceImpl {
 
     /**
      * 封装用户信息,添加关注时间和二维码ticket
-     *  @param json
+     *
+     * @param json
      * @param ticketInfo
      */
     private User transJson2User(JSONObject json, TicketInfo ticketInfo) {
@@ -77,6 +84,7 @@ public class UserServiceImpl {
 
     /**
      * 用户取消订阅
+     *
      * @param openid
      */
     public void unSubscribe(String openid) {
@@ -86,6 +94,7 @@ public class UserServiceImpl {
 
     /**
      * 获取用户信息
+     *
      * @param ticket
      * @return
      */
@@ -96,15 +105,16 @@ public class UserServiceImpl {
 
     /**
      * 保存推广信息
+     *
      * @param uo
      */
     public void insertSpreadInfo(UserOther uo) {
         //如果存在则不进行操作
-        UserOther userOtherDB = userOtherMapper.querySpreadInfoByOpenid(uo.getOpenid(),uo.getReference());
+        UserOther userOtherDB = userOtherMapper.querySpreadInfoByOpenid(uo.getOpenid(), uo.getReference());
 
         int result = userOtherMapper.insert(uo);
-        if(result <0){
-            log.error("save spreadInfo is fail and params is "+uo.toString());
+        if (result < 0) {
+            log.error("save spreadInfo is fail and params is " + uo.toString());
         }
     }
 

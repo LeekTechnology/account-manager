@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wx.account.util.ConstantUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +20,11 @@ import org.springframework.stereotype.Component;
  * 微信的accessToken有效时间为两个小时，调用微信接口很多都要用到accessToken所以需要将accessToken保存，可以保存到redis中或者内存中
  * Created by supermrl on 2019/1/19.
  */
-@Slf4j
+
 @Order(1) //启动顺序
 public class AccessTokenTask implements CommandLineRunner {
 
+    private static Logger log = LoggerFactory.getLogger(AccessTokenTask.class);
 
     @Override
     public void run(String... strings) throws Exception {

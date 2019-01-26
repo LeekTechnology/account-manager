@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,10 +25,10 @@ import java.util.Map;
  * 处理微信消息工具类
  * Created by supermrl on 2019/1/19.
  */
-@Slf4j
 @Component
 public class WxMsgUtil {
 
+    private static Logger log = LoggerFactory.getLogger(WxMsgUtil.class);
     /**
      * 请求消息类型：文本
      */

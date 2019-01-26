@@ -1,11 +1,11 @@
 package com.wx.account.controller;
 
-import cn.hutool.core.util.StrUtil;
-import com.wx.account.service.WxCoreService;
+import com.google.common.base.Strings;
 import com.wx.account.service.impl.WxCoreServiceImpl;
 import com.wx.account.util.WxMsgUtil;
 import com.wx.account.util.WxSignUtil;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -21,10 +21,12 @@ import java.io.UnsupportedEncodingException;
  * 微信处理消息
  * Created by supermrl on 2019/1/19.
  */
-@Slf4j
 @RestController
 @RequestMapping(value = "/leek/wx")
 public class WxCoreController {
+
+    private static Logger log = LoggerFactory.getLogger(WxCoreController.class);
+
 
     @Autowired
     private WxSignUtil wxSignUtil;
@@ -84,7 +86,7 @@ public class WxCoreController {
         // 在响应消息（回复消息给用户）时，也将编码方式设置为UTF-8，原理同上；
         resp.setCharacterEncoding("UTF-8");
         String respXml = wxCoreService.wxMessageHandelCoreService(req, resp);
-        if (StrUtil.isBlank(respXml)){
+        if (Strings.isNullOrEmpty(respXml)){
             log.error("-------------处理微信消息失败-----------------------");
             return "处理微信消息失败";
         }else {

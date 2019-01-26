@@ -3,6 +3,7 @@ package com.wx.account.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Strings;
 import com.wx.account.Message.WxMsgInfo;
 import com.wx.account.Message.messagepackage.Image;
 import com.wx.account.Message.messagepackage.ImageMessage;
@@ -163,7 +164,7 @@ public class WxCoreServiceImpl implements WxCoreService {
                 }
                 // 扫描带参数二维码
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN)) {
-                    if(!StrUtil.isBlank(eventKey)){
+                    if(!Strings.isNullOrEmpty(eventKey)){
                         respMessage = subscribeAction(wxMsgInfo,map.get("Ticket"));
                     }
                 }
@@ -219,7 +220,7 @@ public class WxCoreServiceImpl implements WxCoreService {
         //保存关注人员的信息
         User user = userService.saveWxUser(wxMsgInfo.getFromUserName(), ticketInfo);
 
-        if(!StrUtil.isBlank(ticket)){
+        if(!Strings.isNullOrEmpty(ticket)){
             //单独向推广人发送文本消息
             dealwithSpreadMessage(user,ticket,wxMsgInfo.getToUserName());
         }

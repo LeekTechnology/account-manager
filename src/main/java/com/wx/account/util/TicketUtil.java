@@ -3,10 +3,13 @@ package com.wx.account.util;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.wx.account.common.enums.SpreadType;
 import com.wx.account.dto.TicketInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -16,10 +19,11 @@ import java.util.Map;
  * 二维码工具类
  * Created by supermrl on 2019/1/20.
  */
-@Slf4j
+
 public class TicketUtil {
 
 
+    private static Logger log = LoggerFactory.getLogger(TicketUtil.class);
     /**
      * 获取订阅用户产生的推广二维码全部信息
      * 二维码为永久二维码_最多10W个
@@ -29,7 +33,7 @@ public class TicketUtil {
      */
     public static TicketInfo getTicketInfo(String openid) {
         TicketInfo info = new TicketInfo();
-        if (StrUtil.isBlank(openid)) {
+        if (Strings.isNullOrEmpty(openid)) {
             return null;
         }
 
@@ -49,7 +53,7 @@ public class TicketUtil {
         String result = HttpUtil.post(ticketInfoUrl, json.toString());
         log.info("get ticket info from wx is " + result);
         //获取二维码信息
-        if (!StrUtil.isBlank(result)) {
+        if (!Strings.isNullOrEmpty(result)) {
             JSONObject resultObject = JSONObject.parseObject(result);
             try {
                 info.setTicket(resultObject.get("ticket").toString());
