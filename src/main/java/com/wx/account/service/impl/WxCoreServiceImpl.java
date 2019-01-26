@@ -34,7 +34,7 @@ import java.util.Map;
 
 @Service
 public class WxCoreServiceImpl implements WxCoreService {
-	private static final Logger log = LoggerFactory.getLogger(WxCoreServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(WxCoreServiceImpl.class);
     @Autowired
     private WxMsgUtil wxMsgUtil;
     @Autowired
@@ -47,10 +47,9 @@ public class WxCoreServiceImpl implements WxCoreService {
     private UserServiceImpl userService;
 
 
-
     @Override
     public String wxMessageHandelCoreService(HttpServletRequest req, HttpServletResponse resp) {
-        log.info("------------微信消息开始处理-------------");
+        logger.info("------------微信消息开始处理-------------");
         // 返回给微信服务器的消息,默认为null
 
         String respMessage = null;
@@ -89,7 +88,7 @@ public class WxCoreServiceImpl implements WxCoreService {
                 respMessage = wxMsgUtil.textMessageToXml(textMessage);*/
 
                 String infoUrl = String.format(ConstantUtils.ticketInfo, ConstantUtils.accessToken);
-                QrCodeUtil.createQrCodeImage(infoUrl, "G:\\image\\9.png", "G:\\image\\2.png" , 300, 300);
+                QrCodeUtil.createQrCodeImage(infoUrl, "G:\\image\\9.png", "G:\\image\\2.png", 300, 300);
                 QrCodeUtil.addLogoToQRCode(new File("G:\\image\\6.png"), new File("G:\\image\\9.png"), new LogoConfig());
 
                 JSONObject json = upload("G:\\image\\6.png ", ConstantUtils.accessToken, "image");
@@ -147,9 +146,9 @@ public class WxCoreServiceImpl implements WxCoreService {
 
                 // 事件类型
                 String eventType = map.get("Event");
-                
+
                 String eventKey = map.get("EventKey");//enum定义的动作标识
-                log.info("eventType------>" + eventType + "and eventKey------>" + eventKey);
+                logger.info("eventType------>" + eventType + "and eventKey------>" + eventKey);
                 // 关注
                 if (eventType.equals(wxMsgUtil.EVENT_TYPE_SUBSCRIBE)) {
                     respMessage = subscribeAction(wxMsgInfo, map.get("Ticket"));
@@ -157,43 +156,43 @@ public class WxCoreServiceImpl implements WxCoreService {
                 // 取消关注
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_UNSUBSCRIBE)) {
                     userService.unSubscribe(fromUserName);
-                    respContent = fromUserName+"用户取消关注";
-                    log.info("取消关注: openid is "+fromUserName);
+                    respContent = fromUserName + "用户取消关注";
+                    logger.info("取消关注: openid is " + fromUserName);
                     textMessage.setContent(respContent);
                     respMessage = wxMsgUtil.textMessageToXml(textMessage);
                 }
                 // 扫描带参数二维码
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN)) {
-                    if(!Strings.isNullOrEmpty(eventKey)){
-                        respMessage = subscribeAction(wxMsgInfo,map.get("Ticket"));
+                    if (!StrUtil.isBlank(eventKey)) {
+                        respMessage = subscribeAction(wxMsgInfo, map.get("Ticket"));
                     }
                 }
                 /*else if(eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN_SELF)) {
-                	log.info("本人扫描自己的二维码");
+                    log.info("本人扫描自己的二维码");
                 	respContent = "亲，您已经关注了！<a href = 'https://www.baidu.com/'>点击</a>";
                     textMessage.setContent(respContent);
                     respMessage = wxMsgUtil.textMessageToXml(textMessage);
                 }*/
                 // 上报地理位置
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_LOCATION)) {
-                    log.info("上报地理位置");
+                    logger.info("上报地理位置");
                 }
                 // 自定义菜单（点击菜单拉取消息）
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_CLICK)) {
 
                     // 事件KEY值，与创建自定义菜单时指定的KEY值对应
-                    log.info("eventKey------->" + eventKey);
+                    logger.info("eventKey------->" + eventKey);
 
                 }
                 // 自定义菜单（(自定义菜单URl视图)）
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_VIEW)) {
-                    log.info("处理自定义菜单URI视图");
+                    logger.info("处理自定义菜单URI视图");
                 }
 
             }
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("系统出错");
+            logger.error("系统出错");
             respMessage = null;
         } finally {
             if (null == respMessage) {
@@ -210,19 +209,19 @@ public class WxCoreServiceImpl implements WxCoreService {
      * 包含主动关注,扫描二维码关注
      *
      * @param wxMsgInfo
-     * @param ticket 推广人的ticket
+     * @param ticket    推广人的ticket
      * @return
      */
-    public String subscribeAction(WxMsgInfo wxMsgInfo, String ticket) {
+    public String subscribeAction(WxMsgInfo wxMsgInfo, String ticket) throws Exception {
         String respMessage = null;
         //获取用于推广的二维码信息
         TicketInfo ticketInfo = TicketUtil.getTicketInfo(wxMsgInfo.getFromUserName());
         //保存关注人员的信息
         User user = userService.saveWxUser(wxMsgInfo.getFromUserName(), ticketInfo);
 
-        if(!Strings.isNullOrEmpty(ticket)){
+        if (!StrUtil.isBlank(ticket)) {
             //单独向推广人发送文本消息
-            dealwithSpreadMessage(user,ticket,wxMsgInfo.getToUserName());
+            dealwithSpreadMessage(user, ticket, wxMsgInfo.getToUserName());
         }
 
         //返回欢迎信息和转发二维码
@@ -232,14 +231,15 @@ public class WxCoreServiceImpl implements WxCoreService {
 
     /**
      * 处理返回推广者消息
-     * @param user 订阅用户,被推广者
-     * @param ticket 推广者ticket
+     *
+     * @param user        订阅用户,被推广者
+     * @param ticket      推广者ticket
      * @param serviceName 服务号名称
      */
-    private void dealwithSpreadMessage(User user, String ticket, String serviceName) {
+    private void dealwithSpreadMessage(User user, String ticket, String serviceName) throws Exception {
         //查询推广人信息
         User spreadUser = userService.getUserByTicket(ticket);
-        if(spreadUser == null){
+        if (spreadUser == null) {
             return;
         }
         //插入推广信息
@@ -251,7 +251,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 
         //查询推广人的推广次数
         Integer spreadNum = userService.querySpreadNum(spreadUser.getOpenid());
-        TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(),user.getNickname(),spreadNum,spreadUser.getOpenid());
+        TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(), user.getNickname(), spreadNum, spreadUser.getOpenid());
     }
 
     /**

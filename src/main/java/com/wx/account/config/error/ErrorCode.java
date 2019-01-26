@@ -8,9 +8,10 @@ public class ErrorCode {
     public static final String SUCCESS = "000";
     public static final String FAILED = "999";
 
-    public static final String SYSTEM_ERROR = "1711100000";//crm系统异常
-    public static final String GENERATE_ITEM_ERROR = "1711100001";//生成id主键信息错误
-    public static final String HR_CHANNEL_ID_NOT_EXIST = "1711100002";//集团对应的渠道信息不能识别
+    //模板类错误码
+    public static final String TEMPLATE_GET_IS_FAIL = "1711100000";//微信服务端获取模板失败
+    public static final String TEMPLATE_DATA_IS_NULL = "1711100001";//请先设置模板数据
+    public static final String TEMPLATE_TITLE_NOT_MATCH = "1711100002";//无法匹配系统内置模板名称
 
 
 

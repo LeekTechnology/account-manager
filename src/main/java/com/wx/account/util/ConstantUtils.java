@@ -1,7 +1,6 @@
 package com.wx.account.util;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 /**
@@ -70,8 +69,12 @@ public class ConstantUtils {
     //通过ticket换取二维码
     public static final String ticketUrl = "https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=%s";
 
+    //获取账号模板列表
+    public static final String TemplateLListUrl = "https://api.weixin.qq.com/cgi-bin/template/get_all_private_template?access_token=%s";
+
     //发送模板消息
     public static final String templateSendUrl = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s";
+
 
     //图片上传微信地址
     public static final String UPLOAD_IMG_URL = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";

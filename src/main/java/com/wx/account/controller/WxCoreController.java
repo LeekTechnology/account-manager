@@ -1,6 +1,6 @@
 package com.wx.account.controller;
 
-import com.google.common.base.Strings;
+import cn.hutool.core.util.StrUtil;
 import com.wx.account.service.impl.WxCoreServiceImpl;
 import com.wx.account.util.WxMsgUtil;
 import com.wx.account.util.WxSignUtil;
@@ -86,7 +86,7 @@ public class WxCoreController {
         // 在响应消息（回复消息给用户）时，也将编码方式设置为UTF-8，原理同上；
         resp.setCharacterEncoding("UTF-8");
         String respXml = wxCoreService.wxMessageHandelCoreService(req, resp);
-        if (Strings.isNullOrEmpty(respXml)){
+        if (StrUtil.isBlank(respXml)){
             log.error("-------------处理微信消息失败-----------------------");
             return "处理微信消息失败";
         }else {

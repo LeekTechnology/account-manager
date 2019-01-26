@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public class QrCodeUtil {
 
-    private static Logger log = LoggerFactory.getLogger(QrCodeUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(QrCodeUtil.class);
 
     public static void main(String[] args) throws WriterException {
 
@@ -98,7 +98,7 @@ public class QrCodeUtil {
 
             return path;
         } catch (IOException e) {
-            log.info("生成二维码失败!");
+            logger.info("生成二维码失败!");
             e.printStackTrace();
         }
 

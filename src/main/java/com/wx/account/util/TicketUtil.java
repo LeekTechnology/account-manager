@@ -3,17 +3,12 @@ package com.wx.account.util;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.wx.account.common.enums.SpreadType;
 import com.wx.account.dto.TicketInfo;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Map;
 
 /**
  * 二维码工具类
@@ -23,7 +18,7 @@ import java.util.Map;
 public class TicketUtil {
 
 
-    private static Logger log = LoggerFactory.getLogger(TicketUtil.class);
+    private static Logger logger = LoggerFactory.getLogger(TicketUtil.class);
     /**
      * 获取订阅用户产生的推广二维码全部信息
      * 二维码为永久二维码_最多10W个
@@ -33,7 +28,7 @@ public class TicketUtil {
      */
     public static TicketInfo getTicketInfo(String openid) {
         TicketInfo info = new TicketInfo();
-        if (Strings.isNullOrEmpty(openid)) {
+        if (StrUtil.isBlank(openid)) {
             return null;
         }
 
@@ -51,9 +46,9 @@ public class TicketUtil {
         json.put("action_info", action_info);//永久类型的二维码字符参数类型
 
         String result = HttpUtil.post(ticketInfoUrl, json.toString());
-        log.info("get ticket info from wx is " + result);
+        logger.info("get ticket info from wx is " + result);
         //获取二维码信息
-        if (!Strings.isNullOrEmpty(result)) {
+        if (!StrUtil.isBlank(result)) {
             JSONObject resultObject = JSONObject.parseObject(result);
             try {
                 info.setTicket(resultObject.get("ticket").toString());
@@ -63,12 +58,12 @@ public class TicketUtil {
                 info.setTicketUrl(ticketUrl);
             } catch (Exception e) {
                 e.printStackTrace();
-                log.error("获取二维码失败 errcode:{" + resultObject.get("errcode").toString() + "} errmsg:{" + resultObject.get("errmsg").toString() + "}");
+                logger.error("获取二维码失败 errcode:{" + resultObject.get("errcode").toString() + "} errmsg:{" + resultObject.get("errmsg").toString() + "}");
             }
         } else {
-            log.error("服务器错误,获取二维码失败");
+            logger.error("服务器错误,获取二维码失败");
         }
-        log.info("user openid is "+ openid +" and get TicketInfo from wx is "+info);
+        logger.info("user openid is "+ openid +" and get TicketInfo from wx is "+info);
         return info;
     }
 

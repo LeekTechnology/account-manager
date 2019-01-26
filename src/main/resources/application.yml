@@ -25,5 +25,5 @@ mybatis:
 
 wx:
   token: wxbestir #用于验证微信访问
-  appid: wx7a07162d1a779f62 #用于获取accessToken
-  appsecret: 686217161901e154c9e3f6dec27c545f #用于获取accessToken
+  appid: wxf9e94ed2bef6e8e7 #用于获取accessToken
+  appsecret: 2bd36932772d3d512a11dffc8aa23967 #用于获取accessToken

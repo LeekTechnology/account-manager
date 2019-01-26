@@ -1,25 +1,19 @@
 package com.wx.account.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Strings;
 import com.wx.account.dto.TicketInfo;
 import com.wx.account.mapper.UserMapper;
 import com.wx.account.mapper.UserOtherMapper;
 import com.wx.account.model.User;
 import com.wx.account.model.UserOther;
 import com.wx.account.util.ConstantUtils;
-import com.wx.account.util.WxMsgUtil;
-
-import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * 用户管理
@@ -27,7 +21,8 @@ import java.util.Map;
  */
 @Service
 public class UserServiceImpl {
-    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserMapper userMapper;
@@ -51,20 +46,20 @@ public class UserServiceImpl {
             JSONObject json = JSONObject.parseObject(result);
             try {
                 user = transJson2User(json, ticketInfo);
-                if (Strings.isNullOrEmpty(user.getOpenid())) {
+                if (StrUtil.isBlank(user.getOpenid())) {
                     throw new Exception("获取用户信息失败");
                 }
                 int i = userMapper.insert(user);
                 if (i < 0) {
-                    log.error("sub user save is fail and user is " + user);
+                    logger.error("sub user save is fail and user is " + user);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                log.error("获取token失败 errcode:{" + json.get("errcode").toString() + "} errmsg:{" + json.get("errmsg").toString() + "}");
+                logger.error("获取token失败 errcode:{" + json.get("errcode").toString() + "} errmsg:{" + json.get("errmsg").toString() + "}");
             }
 
         } else {
-            log.error("获取用户信息失败");
+            logger.error("获取用户信息失败");
         }
         return user;
     }
@@ -114,7 +109,7 @@ public class UserServiceImpl {
 
         int result = userOtherMapper.insert(uo);
         if (result < 0) {
-            log.error("save spreadInfo is fail and params is " + uo.toString());
+            logger.error("save spreadInfo is fail and params is " + uo.toString());
         }
     }
 
