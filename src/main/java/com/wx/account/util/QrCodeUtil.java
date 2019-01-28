@@ -173,8 +173,8 @@ public class QrCodeUtil {
             /**
              * 设置logo的大小,本人设置为二维码图片的20%,因为过大会盖掉二维码
              */
-            int widthLogo = logo.getWidth() > image.getWidth() * 2 / 10 ? (image.getWidth() * 2 / 10) : logo.getWidth();
-            int heightLogo = logo.getHeight() > image.getHeight() * 2 / 10 ? (image.getHeight() * 2 / 10) : logo.getWidth();
+            int widthLogo = logo.getWidth() > image.getWidth() * 2 / 10 ? (image.getWidth() * 2 / 7) : logo.getWidth();
+            int heightLogo = logo.getHeight() > image.getHeight() * 2 / 10 ? (image.getWidth() * 2 / 7) : logo.getWidth();
 
             // 计算图片放置位置
             int x = (image.getWidth() - widthLogo*2);
@@ -307,7 +307,7 @@ public class QrCodeUtil {
 
             // 参数顺序分别为：编码内容，编码类型，生成图片宽度，生成图片高度，设置参数
             bm = multiFormatWriter.encode(content, barcodeFormat, width, height, hints);
-            bm = updateBit(bm, 10);
+            bm = updateBit(bm, 1);
 
             int w = bm.getWidth();
             int h = bm.getHeight();
