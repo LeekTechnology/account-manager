@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.wx.account.mapper.UserOtherMapper">
-  <resultMap id="BaseResultMap" type="com.wx.account.model.UserOther">
+<mapper namespace="com.wx.account.mapper.SpreadUserMapper">
+  <resultMap id="BaseResultMap" type="com.wx.account.model.SpreadUser">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="openid" jdbcType="VARCHAR" property="openid" />
     <result column="subscribe_scene" jdbcType="VARCHAR" property="subscribe_scene" />
@@ -13,26 +13,26 @@
     id, openid, subscribe_scene, reference, operator_time, action
   </sql>
 
-  <insert id="insert" parameterType="com.wx.account.model.UserOther">
-    insert into user_other (id, openid, subscribe_scene, 
+  <insert id="insert" parameterType="com.wx.account.model.SpreadUser">
+    insert into t_spread_user (id, openid, subscribe_scene,
       reference)
     values (#{id,jdbcType=BIGINT}, #{openid,jdbcType=VARCHAR}, #{subscribe_scene,jdbcType=VARCHAR}, 
       #{reference,jdbcType=VARCHAR})
   </insert>
 
   <update id="updateSpreadAction">
-    update user_other set action = 1 where openid = #{openid}
+    update t_spread_user set action = 1 where openid = #{openid}
   </update>
 
-  <select id="querySpreadInfoByOpenid" resultType="com.wx.account.model.UserOther">
+  <select id="querySpreadInfoByOpenid" resultType="com.wx.account.model.SpreadUser">
     SELECT
     <include refid="Base_Column_List"/>
-    FROM `user_other` where ((openid = #{openid} and reference = #{reference}) or (openid = #{reference} and reference = #{openid})) and action != 1;
+    FROM `t_spread_user` where ((openid = #{openid} and reference = #{reference}) or (openid = #{reference} and reference = #{openid})) and action != 1;
   </select>
 
 
   <select id="querySpreadNum" resultType="integer">
-    select count(*) from user_other where reference = #{openid} and action != 1
+    select count(*) from t_spread_user where reference = #{openid} and action != 1
   </select>
 
 

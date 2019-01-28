@@ -37,7 +37,7 @@ public class QrCodeUtil {
             String ticketInfoUrl = String.format(ConstantUtils.ticketInfo, ConstantUtils.accessToken);
 
             User user = null;
-            String userInfoUrl = String.format(ConstantUtils.userInfoUrl, ConstantUtils.accessToken, "wx7a07162d1a779f62");
+            String userInfoUrl = String.format(ConstantUtils.USER_INFO_URL, ConstantUtils.accessToken, "wx7a07162d1a779f62");
             String result = HttpUtil.get(userInfoUrl);
             if (result != null) {
                 JSONObject json = JSONObject.parseObject(result);
@@ -45,8 +45,8 @@ public class QrCodeUtil {
             }
 
 
-            createQrCodeImage(ticketInfoUrl, "F:\\images\\11.png", user.getHeadimgurl() , 300, 300);
-            addLogoToQRCode(new File("F:\\image\\55.png"), new File("F:\\images\\11.png"), new LogoConfig());
+            /*createQrCodeImage(ticketInfoUrl, "F:\\images\\11.png", user.getHeadimgurl(), 300, 300);
+            addLogoToQRCode(new File("F:\\image\\55.png"), new File("F:\\images\\11.png"), new LogoConfig());*/
             /**********************************************************/
 //            String content = "http://weixin.qq.com/q/w0hPEGjlfcUEyn_RhGAJ";
 //            File file = new File("D:/", new Date().getTime() + ".jpg");
@@ -79,7 +79,7 @@ public class QrCodeUtil {
      * @param height   高度
      * @return
      */
-    public static String createQrCodeImage(String content, String path, String logoPath, int width, int height) {
+    public static String createQrCodeImage(String content, String path, BufferedImage bufferedImage, int width, int height) {
 
         if (StringUtils.isEmpty(content)) {
             return "";
@@ -92,9 +92,7 @@ public class QrCodeUtil {
 
             ImageIO.write(bim, "png", file);
 
-            if (StringUtils.isNotBlank(logoPath)) {
-                addLogoToQRCode(file, new File(logoPath), new LogoConfig());
-            }
+            addLogoToQRCode(file, bufferedImage, new LogoConfig());
 
             return path;
         } catch (IOException e) {
@@ -111,9 +109,9 @@ public class QrCodeUtil {
      * @param qrPic
      * @param logoPic
      */
-    public static void addLogoToQRCode(File qrPic, File logoPic, LogoConfig logoConfig) {
+    public static void addLogoToQRCode(File qrPic, BufferedImage logo, LogoConfig logoConfig) {
         try {
-            if (!qrPic.isFile() || !logoPic.isFile()) {
+            if (!qrPic.isFile() || logo == null) {
                 System.out.print("file not find !");
             }
 
@@ -122,11 +120,6 @@ public class QrCodeUtil {
              */
             BufferedImage image = ImageIO.read(qrPic);
             Graphics2D g = image.createGraphics();
-
-            /**
-             * 读取Logo图片
-             */
-            BufferedImage logo = ImageIO.read(logoPic);
 
             /**
              * 设置logo的大小,本人设置为二维码图片的20%,因为过大会盖掉二维码
@@ -177,8 +170,8 @@ public class QrCodeUtil {
             int heightLogo = logo.getHeight() > image.getHeight() * 2 / 10 ? (image.getWidth() * 2 / 7) : logo.getWidth();
 
             // 计算图片放置位置
-            int x = (image.getWidth() - widthLogo*2);
-            int y = (image.getHeight() - widthLogo*2);
+            int x = (image.getWidth() - widthLogo * 2);
+            int y = (image.getHeight() - widthLogo * 2);
 
             //开始绘制图片
             g.drawImage(logo, x, y, widthLogo, heightLogo, null);

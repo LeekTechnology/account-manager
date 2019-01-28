@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @Mapper
 public interface UserMapper {
@@ -12,10 +14,12 @@ public interface UserMapper {
 
     /**
      * 保存订阅用户
-     * @param record
+     * @param user
      * @return
      */
-    int insert(User record);
+    int save(User user);
+
+    void update(User user);
 
     int insertSelective(User record);
 
@@ -37,5 +41,13 @@ public interface UserMapper {
      * @return
      */
     User getUserByTicket(@Param(value = "ticket")String ticket);
+
+    /**
+     * 查询列表
+     *
+     * @param user
+     * @return
+     */
+    List<User> selectList(@Param(value = "user")User user);
 
 }

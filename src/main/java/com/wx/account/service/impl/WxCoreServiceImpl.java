@@ -3,23 +3,26 @@ package com.wx.account.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Strings;
 import com.wx.account.Message.WxMsgInfo;
 import com.wx.account.Message.messagepackage.Image;
 import com.wx.account.Message.messagepackage.ImageMessage;
 import com.wx.account.Message.messagepackage.TextMessage;
+import com.wx.account.common.enums.KeyWordEnum;
 import com.wx.account.dto.TicketInfo;
+import com.wx.account.model.SpreadUser;
 import com.wx.account.model.User;
-import com.wx.account.model.UserOther;
 import com.wx.account.service.WxCoreService;
 import com.wx.account.util.*;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -71,124 +74,81 @@ public class WxCoreServiceImpl implements WxCoreService {
             String msgType = map.get("MsgType");
             wxMsgInfo.setMessageType(msgType);
 
-            // 默认回复文本消息
-            TextMessage textMessage = new TextMessage();
-            textMessage.setToUserName(fromUserName);
-            textMessage.setFromUserName(toUserName);
-            textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
-            textMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_TEXT);
-            textMessage.setFuncFlag(0);
-
-            // 分析用户发送的消息类型，并作出相应的处理
+            // 接收内容
+            String content = map.get("Content");
+            wxMsgInfo.setContent(content);
 
             // 文本消息
             if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_TEXT)) {
-                /*respContent = "亲，这是文本消息！";
-                textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);*/
 
-                String infoUrl = String.format(ConstantUtils.ticketInfo, ConstantUtils.accessToken);
-                QrCodeUtil.createQrCodeImage(infoUrl, "G:\\image\\9.png", "G:\\image\\2.png", 300, 300);
-                QrCodeUtil.addLogoToQRCode(new File("G:\\image\\6.png"), new File("G:\\image\\9.png"), new LogoConfig());
+                //业务中 关键字 处理
+                if (StringUtils.isNotBlank(content) && KeyWordEnum.getEnumContent(content)) {
 
-                JSONObject json = upload("G:\\image\\6.png ", ConstantUtils.accessToken, "image");
-                String mediaId = json.get("media_id").toString();
-                String createdAt = json.get("created_at").toString();
+                    //获取用户信息
+                    User user = userService.findWxUser(wxMsgInfo.getFromUserName());
 
-                ImageMessage imageMessage = new ImageMessage();
-                imageMessage.setToUserName(fromUserName);
-                imageMessage.setFromUserName(toUserName);
-                imageMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_IMAGE);
-                imageMessage.setCreateTime(Long.valueOf(createdAt));
-                Image image = imageMessage.getImage();
-                image.setMediaId(mediaId);
+                    //获取用户头像用于合成二维码
+                    String headimgurl = user.getHeadimgurl();
 
-                respMessage = wxMsgUtil.imageMessageToXml(imageMessage);
-            }
+                    //下载头像
+                    BufferedImage bufferedImage = ImageIO.read(new URL(headimgurl));
 
-            // 图片消息
-            else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_IMAGE)) {
-                respContent = "您发送的是图片消息！";
-                textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);
-            }
+                    //创建二维码，并与用户头像合成新图片
+                    QrCodeUtil.createQrCodeImage(ConstantUtils.SUBSCRIBE_INDEX_URL, "F:\\images\\11.png", bufferedImage, 300, 300);
 
-            // 语音消息
-            else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_VOICE)) {
-                respContent = "您发送的是语音消息！";
-                textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);
-            }
+                    //将图片填充至海报
+                    QrCodeUtil.addLogoToQRCodeBound(new File("F:\\image\\55.png"), new File("F:\\images\\11.png"), new LogoConfig());
 
-            // 视频消息
-            else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_VIDEO)) {
-                respContent = "您发送的是视频消息！";
-                textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);
-            }
+                    //上传微信服务器
+                    JSONObject json = upload("F:\\image\\55.png ", ConstantUtils.accessToken, "image");
+                    String mediaId = json.get("media_id").toString();
+                    String createdAt = json.get("created_at").toString();
 
-            // 地理位置消息
-            else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_LOCATION)) {
-                respContent = "您发送的是地理位置消息！";
-                textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);
-            }
-
-            // 链接消息
-            else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_LINK)) {
-                respContent = "您发送的是链接消息！";
-                textMessage.setContent(respContent);
-                respMessage = wxMsgUtil.textMessageToXml(textMessage);
-            }
-
-            // 事件推送(当用户主动点击菜单，或者扫面二维码等事件)
-            else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_EVENT)) {
+                    //装箱返回图片信息
+                    ImageMessage imageMessage = new ImageMessage();
+                    imageMessage.setToUserName(fromUserName);
+                    imageMessage.setFromUserName(toUserName);
+                    imageMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_IMAGE);
+                    imageMessage.setCreateTime(Long.valueOf(createdAt));
+                    Image image = imageMessage.getImage();
+                    image.setMediaId(mediaId);
+                    respMessage = wxMsgUtil.imageMessageToXml(imageMessage);
+                } else {
+                    //非自定义关键字，默认返回文本信息
+                    TextMessage textMessage = new TextMessage();
+                    textMessage.setToUserName(fromUserName);
+                    textMessage.setFromUserName(toUserName);
+                    textMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_TEXT);
+                    textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
+                    textMessage.setContent("再点，滚一边去！");
+                    respMessage = wxMsgUtil.textMessageToXml(textMessage);
+                }
+            } else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_EVENT)) {
 
                 // 事件类型
                 String eventType = map.get("Event");
 
-                String eventKey = map.get("EventKey");//enum定义的动作标识
+                String eventKey = map.get("EventKey");
                 logger.info("eventType------>" + eventType + "and eventKey------>" + eventKey);
                 // 关注
                 if (eventType.equals(wxMsgUtil.EVENT_TYPE_SUBSCRIBE)) {
-                    respMessage = subscribeAction(wxMsgInfo, map.get("Ticket"));
+                    respMessage = subscribeAction(wxMsgInfo);
                 }
                 // 取消关注
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_UNSUBSCRIBE)) {
+                    //更新用户信息
                     userService.unSubscribe(fromUserName);
-                    respContent = fromUserName + "用户取消关注";
+                    //respContent = fromUserName + "用户取消关注";
                     logger.info("取消关注: openid is " + fromUserName);
-                    textMessage.setContent(respContent);
-                    respMessage = wxMsgUtil.textMessageToXml(textMessage);
+                    /*textMessage.setContent(respContent);
+                    respMessage = wxMsgUtil.textMessageToXml(textMessage);*/
                 }
                 // 扫描带参数二维码
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN)) {
                     if (!StrUtil.isBlank(eventKey)) {
-                        respMessage = subscribeAction(wxMsgInfo, map.get("Ticket"));
+                        respMessage = scanSubscribeAction(wxMsgInfo, map.get("Ticket"));
                     }
                 }
-                /*else if(eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN_SELF)) {
-                    log.info("本人扫描自己的二维码");
-                	respContent = "亲，您已经关注了！<a href = 'https://www.baidu.com/'>点击</a>";
-                    textMessage.setContent(respContent);
-                    respMessage = wxMsgUtil.textMessageToXml(textMessage);
-                }*/
-                // 上报地理位置
-                else if (eventType.equals(wxMsgUtil.EVENT_TYPE_LOCATION)) {
-                    logger.info("上报地理位置");
-                }
-                // 自定义菜单（点击菜单拉取消息）
-                else if (eventType.equals(wxMsgUtil.EVENT_TYPE_CLICK)) {
-
-                    // 事件KEY值，与创建自定义菜单时指定的KEY值对应
-                    logger.info("eventKey------->" + eventKey);
-
-                }
-                // 自定义菜单（(自定义菜单URl视图)）
-                else if (eventType.equals(wxMsgUtil.EVENT_TYPE_VIEW)) {
-                    logger.info("处理自定义菜单URI视图");
-                }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -206,13 +166,44 @@ public class WxCoreServiceImpl implements WxCoreService {
 
     /**
      * 用户关注公众号时的动作
-     * 包含主动关注,扫描二维码关注
+     * 主动关注, 返回文本信息
      *
      * @param wxMsgInfo
-     * @param ticket    推广人的ticket
      * @return
      */
-    public String subscribeAction(WxMsgInfo wxMsgInfo, String ticket) throws Exception {
+    public String subscribeAction(WxMsgInfo wxMsgInfo) throws Exception {
+
+        //保存关注人员的信息
+        User user = userService.findWxUser(wxMsgInfo.getFromUserName());
+
+        TextMessage textMessage = new TextMessage();
+        textMessage.setToUserName(wxMsgInfo.getFromUserName());
+        textMessage.setFromUserName(wxMsgInfo.getToUserName());
+        textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
+        textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
+
+        String text = "嗨 ，"+user.getNickname()+"小同学，一场高端而又有趣的任务宝之旅正在为你展开。。。\r\n" +
+                "成功邀请 10 个好友扫码你的专属任务海报并关注我们，即可拿走A6一辆！\r\n" +
+                "成功邀请 20 个好友扫码你的专属任务海报并关注我们，即可拿走A8一辆！\r\n" +
+                "\r\n" +
+                "数量有限，需要你速战速决！\r\n" +
+                "公众号回复【海报】！\r\n" +
+                "\r\n" +
+                "\r\n" +
+                "即将为你生成专属任务海报↓↓↓";
+
+        textMessage.setContent(text);
+        return wxMsgUtil.textMessageToXml(textMessage);
+    }
+
+    /**
+     * 用户关注公众号时的动作
+     * 扫描二维码关注
+     *
+     * @param wxMsgInfo
+     * @return
+     */
+    public String scanSubscribeAction(WxMsgInfo wxMsgInfo, String ticket) throws Exception {
         String respMessage = null;
         //获取用于推广的二维码信息
         TicketInfo ticketInfo = TicketUtil.getTicketInfo(wxMsgInfo.getFromUserName());
@@ -225,7 +216,7 @@ public class WxCoreServiceImpl implements WxCoreService {
         }
 
         //返回欢迎信息和转发二维码
-        respMessage = wxMsgModelUtil.followResponseMessageModel(wxMsgInfo, user);
+        //respMessage = wxMsgModelUtil.followResponseMessageModel(wxMsgInfo, user);
         return respMessage;
     }
 
@@ -243,7 +234,7 @@ public class WxCoreServiceImpl implements WxCoreService {
             return;
         }
         //插入推广信息
-        UserOther uo = new UserOther();
+        SpreadUser uo = new SpreadUser();
         uo.setOpenid(user.getOpenid());
         uo.setSubscribe_scene(wxMsgUtil.EVENT_TYPE_SCAN);
         uo.setReference(spreadUser.getOpenid());
@@ -339,5 +330,4 @@ public class WxCoreServiceImpl implements WxCoreService {
         JSONObject json = JSONObject.parseObject(result);
         return json;
     }
-
 }

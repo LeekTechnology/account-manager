@@ -1,10 +1,7 @@
 package com.wx.account.model;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -27,7 +24,7 @@ public class User{
 
     private Date subscribe_time;
 
-    private Integer status;
+    private Boolean status;
 
     private String ticket;
 

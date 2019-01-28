@@ -25,4 +25,6 @@ public class WxMsgInfo implements Serializable {
     private String weixinUserName;         // 微信用户名
 
     private String messageType;            // 消息类型
+
+    private String content;            // 消息内容
 }

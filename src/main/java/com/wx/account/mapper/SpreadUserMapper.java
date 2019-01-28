@@ -1,13 +1,13 @@
 package com.wx.account.mapper;
 
-import com.wx.account.model.UserOther;
+import com.wx.account.model.SpreadUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @Mapper
-public interface UserOtherMapper {
+public interface SpreadUserMapper {
     int deleteByPrimaryKey(Long id);
 
     /**
@@ -15,15 +15,15 @@ public interface UserOtherMapper {
      * @param record
      * @return
      */
-    int insert(UserOther record);
+    int insert(SpreadUser record);
 
-    int insertSelective(UserOther record);
+    int insertSelective(SpreadUser record);
 
-    UserOther selectByPrimaryKey(Long id);
+    SpreadUser selectByPrimaryKey(Long id);
 
-    int updateByPrimaryKeySelective(UserOther record);
+    int updateByPrimaryKeySelective(SpreadUser record);
 
-    int updateByPrimaryKey(UserOther record);
+    int updateByPrimaryKey(SpreadUser record);
 
     /**
      * 重置用户推广信息
@@ -45,5 +45,5 @@ public interface UserOtherMapper {
      * @param reference
      * @return
      */
-    UserOther querySpreadInfoByOpenid(@Param(value = "openid")String openid, @Param(value = "reference")String reference);
+    SpreadUser querySpreadInfoByOpenid(@Param(value = "openid")String openid, @Param(value = "reference")String reference);
 }

@@ -61,7 +61,7 @@ public class ConstantUtils {
     public static final String accessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
 
     //获取用户信息url --url
-    public static final String userInfoUrl = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN";
+    public static final String USER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN";
 
     //永久二维码ticket --info
     public static final String ticketInfo = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=%s";
@@ -78,5 +78,8 @@ public class ConstantUtils {
 
     //图片上传微信地址
     public static final String UPLOAD_IMG_URL = "https://api.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE";
+
+    //呆呆 的 公众号关注首页
+    public static final String SUBSCRIBE_INDEX_URL = "https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz=Mzg3MjAzMzAzMg==&scene=124#wechat_redirect";
 
 }

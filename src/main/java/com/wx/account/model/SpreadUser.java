@@ -1,14 +1,16 @@
 package com.wx.account.model;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
 import java.util.Date;
 
+/**
+ * Created by Administrator on 2019/1/28.
+ */
+
 @Data
-public class UserOther{
+public class SpreadUser {
+
     private Long id;
 
     private String openid;
