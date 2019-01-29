@@ -34,7 +34,7 @@ public class WxMsgModelUtil {
         textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
         textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
         textMessage.setFuncFlag(0);
-        textMessage.setContent("系统出错啦，请稍后再试");
+        textMessage.setContent("服务器小朋友挂掉了");
         return weixinMessageUtil.textMessageToXml(textMessage);
     }
 

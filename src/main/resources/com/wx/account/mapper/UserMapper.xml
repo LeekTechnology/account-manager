@@ -28,7 +28,7 @@
     where o.id = #{id}
   </select>
 
-  <insert id="save" parameterType="com.wx.account.model.User" >
+  <insert id="save" parameterType="com.wx.account.model.User">
     insert into user (id, openid, nickname, sex, city, country, province,
     headimgurl, ticket, subscribe_time, status)
     values (#{id}, #{openid}, #{nickname}, #{sex}, #{city}, #{country}, #{province},

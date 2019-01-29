@@ -211,8 +211,6 @@ public class WxCoreServiceImpl implements WxCoreService {
     public String scanSubscribeAction(WxMsgInfo wxMsgInfo, String eventKey) throws Exception {
         String respMessage = null;
 
-        User wxUser = userService.getSubScribeUserInfo(wxMsgInfo.getFromUserName());
-
         User temp = new User();
         temp.setOpenid(wxMsgInfo.getFromUserName());
 
@@ -220,16 +218,35 @@ public class WxCoreServiceImpl implements WxCoreService {
 
         //如果用户不存在则保存当前用户的数据
         if (CollectionUtils.isEmpty(users)) {
+
+            User wxUser = userService.getSubScribeUserInfo(wxMsgInfo.getFromUserName());
             //保存用户信息
             userService.saveUser(wxUser);
 
+            User tempUser = new User();
+            tempUser.setOpenid(wxUser.getOpenid());
+
+            List<User> tempUsers = userService.selectList(tempUser);
+
             //保存推广用户关系表
-            saveSubscribeBusiness(wxUser, eventKey);
+            saveSubscribeBusiness(tempUsers.get(0), eventKey);
 
             //返回欢迎文本信息
-            respMessage = scanSubscribeAction(wxUser);
-        } else {//存在 自扫行为
-            respMessage = scanSubscribeRespMessage(users.get(0));
+            respMessage = scanSubscribeAction(tempUsers.get(0));
+
+        } else {
+
+            //存在
+            User user = users.get(0);
+            if (!user.getStatus()) {//取消关注后又扫码关注
+                user.setStatus(true);
+                userService.update(user);
+                respMessage = scanSubscribeAction(users.get(0));
+            }else if (user.getId().toString().equals(eventKey.split("_")[1])) {//自扫行为
+                respMessage = scanSubscribeRespMessage(user);
+            } else {
+                respMessage = scanCommonMessage(user);
+            }
         }
         return respMessage;
     }
@@ -244,8 +261,22 @@ public class WxCoreServiceImpl implements WxCoreService {
         textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
         Integer count = 10 - (userService.querySpreadCount(wxUser.getId()));
         String text = "嗨 ，" + wxUser.getNickname() + "小同学，距离A6宝马还差\r\n" +
-                "         "+ count +"个人\r\n"+
+                "         " + count + "个人\r\n" +
                 "加油吧小骚年【但是请不要自骚啊】";
+
+        textMessage.setContent(text);
+        return wxMsgUtil.textMessageToXml(textMessage);
+    }
+
+    public String scanCommonMessage(User wxUser) throws Exception {
+
+        //保存关注人员的信息
+        TextMessage textMessage = new TextMessage();
+        textMessage.setToUserName(wxMsgInfo.getFromUserName());
+        textMessage.setFromUserName(wxMsgInfo.getToUserName());
+        textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
+        textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
+        String text = "嗨 ，" + wxUser.getNickname() + "你个小狗把，已经关注过了，还扫个卵\r\n";
 
         textMessage.setContent(text);
         return wxMsgUtil.textMessageToXml(textMessage);
@@ -266,10 +297,11 @@ public class WxCoreServiceImpl implements WxCoreService {
         textMessage.setFromUserName(wxMsgInfo.getToUserName());
         textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
         textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
-
+        Integer count = userService.querySpreadCount(wxUser.getId());
         String text = "嗨 ，" + wxUser.getNickname() + "小同学，一场高端而又有趣的任务宝之旅正在为你展开。。。\r\n" +
                 "成功邀请 10 个好友扫码你的专属任务海报并关注我们，即可拿走A6一辆！\r\n" +
                 "成功邀请 20 个好友扫码你的专属任务海报并关注我们，即可拿走A8一辆！\r\n" +
+                "当前推广人数！(" + count + "人 )\r\n" +
                 "\r\n" +
                 "数量有限，需要你速战速决！\r\n" +
                 "公众号回复【海报】！\r\n" +
@@ -410,14 +442,14 @@ public class WxCoreServiceImpl implements WxCoreService {
                     User user = userService.getById(Long.valueOf(arr[1]));
                     if (user != null) {
                         spreadUser.setUserId(user.getId());//推广人员
-                        spreadUser.setSpreadUserId(126L);//被推广人员
+                        spreadUser.setSpreadUserId(temp.getId());//被推广人员
                         spreadUser.setCreateDate(new Date());
                         //此处直接保存，没有校验，因为temp一定是一个新用户
                         spreadUserService.save(spreadUser);
-
+                        logger.debug("推广信息：{}", JSONObject.toJSONString(spreadUser));
                         //查询推广人的推广次数
-                        Integer spreadCount = userService.querySpreadCount(spreadUser.getUserId());
-                        TemplateUtil.sendSpreadTemplateMsg(user.getNickname(), user.getNickname(), spreadCount, user.getOpenid());
+                        /*Integer spreadCount = userService.querySpreadCount(spreadUser.getUserId());
+                        TemplateUtil.sendSpreadTemplateMsg(user.getNickname(), user.getNickname(), spreadCount, user.getOpenid());*/
                     }
                 }
             }

@@ -188,6 +188,7 @@ public class UserServiceImpl {
             JSONObject json = JSONObject.parseObject(result);
             try {
                 user = JSONObject.parseObject(json.toJSONString(), User.class);
+                user.setStatus(true);
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.error("获取token失败 errcode:{" + json.get("errcode").toString() + "} errmsg:{" + json.get("errmsg").toString() + "}");
@@ -204,11 +205,15 @@ public class UserServiceImpl {
         return userMapper.selectList(temp);
     }
 
-    public void saveUser(User wxUser) {
-        userMapper.save(wxUser);
+    public int saveUser(User wxUser) {
+        return userMapper.save(wxUser);
     }
 
     public User getById(Long userId) {
         return userMapper.getById(userId);
+    }
+
+    public void update(User user) {
+        userMapper.update(user);
     }
 }
