@@ -8,11 +8,12 @@ import com.wx.account.Message.messagepackage.Image;
 import com.wx.account.Message.messagepackage.ImageMessage;
 import com.wx.account.Message.messagepackage.TextMessage;
 import com.wx.account.common.enums.KeyWordEnum;
-import com.wx.account.dto.TicketInfo;
+import com.wx.account.common.enums.QrCodeEnum;
 import com.wx.account.model.SpreadUser;
 import com.wx.account.model.User;
 import com.wx.account.service.WxCoreService;
 import com.wx.account.util.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,8 @@ import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,6 +52,8 @@ public class WxCoreServiceImpl implements WxCoreService {
     @Autowired
     private UserServiceImpl userService;
 
+    @Autowired
+    private SpreadUserServiceImpl spreadUserService;
 
     @Override
     public String wxMessageHandelCoreService(HttpServletRequest req, HttpServletResponse resp) {
@@ -59,8 +64,6 @@ public class WxCoreServiceImpl implements WxCoreService {
 
         try {
 
-            // 默认返回的文本消息内容
-            String respContent = null;
             // xml分析
             // 调用消息工具类MessageUtil解析微信发来的xml格式的消息，解析的结果放在HashMap里；
             Map<String, String> map = wxMsgUtil.parseXml(req);
@@ -78,7 +81,7 @@ public class WxCoreServiceImpl implements WxCoreService {
             String content = map.get("Content");
             wxMsgInfo.setContent(content);
 
-            // 文本消息
+            // 文本消息---生成海报
             if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_TEXT)) {
 
                 //业务中 关键字 处理
@@ -93,8 +96,10 @@ public class WxCoreServiceImpl implements WxCoreService {
                     //下载头像
                     BufferedImage bufferedImage = ImageIO.read(new URL(headimgurl));
 
+                    net.sf.json.JSONObject limitQRCode = WeiXinUtil.createLimitQRCode(QrCodeEnum.userSpread.getValue() + "_" + user.getId());
+
                     //创建二维码，并与用户头像合成新图片
-                    QrCodeUtil.createQrCodeImage(ConstantUtils.SUBSCRIBE_INDEX_URL, "F:\\images\\11.png", bufferedImage, 300, 300);
+                    QrCodeUtil.createQrCodeImage(limitQRCode.getString("url"), "F:\\images\\11.png", bufferedImage, 300, 300);
 
                     //将图片填充至海报
                     QrCodeUtil.addLogoToQRCodeBound(new File("F:\\image\\55.png"), new File("F:\\images\\11.png"), new LogoConfig());
@@ -146,7 +151,7 @@ public class WxCoreServiceImpl implements WxCoreService {
                 // 扫描带参数二维码
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_SCAN)) {
                     if (!StrUtil.isBlank(eventKey)) {
-                        respMessage = scanSubscribeAction(wxMsgInfo, map.get("Ticket"));
+                        respMessage = scanSubscribeAction(wxMsgInfo, eventKey);
                     }
                 }
             }
@@ -182,7 +187,7 @@ public class WxCoreServiceImpl implements WxCoreService {
         textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
         textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
 
-        String text = "嗨 ，"+user.getNickname()+"小同学，一场高端而又有趣的任务宝之旅正在为你展开。。。\r\n" +
+        String text = "嗨 ，" + user.getNickname() + "小同学，一场高端而又有趣的任务宝之旅正在为你展开。。。\r\n" +
                 "成功邀请 10 个好友扫码你的专属任务海报并关注我们，即可拿走A6一辆！\r\n" +
                 "成功邀请 20 个好友扫码你的专属任务海报并关注我们，即可拿走A8一辆！\r\n" +
                 "\r\n" +
@@ -203,21 +208,77 @@ public class WxCoreServiceImpl implements WxCoreService {
      * @param wxMsgInfo
      * @return
      */
-    public String scanSubscribeAction(WxMsgInfo wxMsgInfo, String ticket) throws Exception {
+    public String scanSubscribeAction(WxMsgInfo wxMsgInfo, String eventKey) throws Exception {
         String respMessage = null;
-        //获取用于推广的二维码信息
-        TicketInfo ticketInfo = TicketUtil.getTicketInfo(wxMsgInfo.getFromUserName());
-        //保存关注人员的信息
-        User user = userService.saveWxUser(wxMsgInfo.getFromUserName(), ticketInfo);
 
-        if (!StrUtil.isBlank(ticket)) {
-            //单独向推广人发送文本消息
-            dealwithSpreadMessage(user, ticket, wxMsgInfo.getToUserName());
+        User wxUser = userService.getSubScribeUserInfo(wxMsgInfo.getFromUserName());
+
+        User temp = new User();
+        temp.setOpenid(wxMsgInfo.getFromUserName());
+
+        List<User> users = userService.selectList(temp);
+
+        //如果用户不存在则保存当前用户的数据
+        if (CollectionUtils.isEmpty(users)) {
+            //保存用户信息
+            userService.saveUser(wxUser);
+
+            //保存推广用户关系表
+            saveSubscribeBusiness(wxUser, eventKey);
+
+            //返回欢迎文本信息
+            respMessage = scanSubscribeAction(wxUser);
+        } else {//存在 自扫行为
+            respMessage = scanSubscribeRespMessage(users.get(0));
         }
-
-        //返回欢迎信息和转发二维码
-        //respMessage = wxMsgModelUtil.followResponseMessageModel(wxMsgInfo, user);
         return respMessage;
+    }
+
+    public String scanSubscribeRespMessage(User wxUser) throws Exception {
+
+        //保存关注人员的信息
+        TextMessage textMessage = new TextMessage();
+        textMessage.setToUserName(wxMsgInfo.getFromUserName());
+        textMessage.setFromUserName(wxMsgInfo.getToUserName());
+        textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
+        textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
+        Integer count = 10 - (userService.querySpreadCount(wxUser.getId()));
+        String text = "嗨 ，" + wxUser.getNickname() + "小同学，距离A6宝马还差\r\n" +
+                "         "+ count +"个人\r\n"+
+                "加油吧小骚年【但是请不要自骚啊】";
+
+        textMessage.setContent(text);
+        return wxMsgUtil.textMessageToXml(textMessage);
+    }
+
+    /**
+     * 用户关注公众号时的动作
+     * 主动关注, 返回文本信息
+     *
+     * @param wxUser
+     * @return
+     */
+    public String scanSubscribeAction(User wxUser) throws Exception {
+
+        //保存关注人员的信息
+        TextMessage textMessage = new TextMessage();
+        textMessage.setToUserName(wxMsgInfo.getFromUserName());
+        textMessage.setFromUserName(wxMsgInfo.getToUserName());
+        textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
+        textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
+
+        String text = "嗨 ，" + wxUser.getNickname() + "小同学，一场高端而又有趣的任务宝之旅正在为你展开。。。\r\n" +
+                "成功邀请 10 个好友扫码你的专属任务海报并关注我们，即可拿走A6一辆！\r\n" +
+                "成功邀请 20 个好友扫码你的专属任务海报并关注我们，即可拿走A8一辆！\r\n" +
+                "\r\n" +
+                "数量有限，需要你速战速决！\r\n" +
+                "公众号回复【海报】！\r\n" +
+                "\r\n" +
+                "\r\n" +
+                "即将为你生成专属任务海报↓↓↓";
+
+        textMessage.setContent(text);
+        return wxMsgUtil.textMessageToXml(textMessage);
     }
 
     /**
@@ -234,15 +295,15 @@ public class WxCoreServiceImpl implements WxCoreService {
             return;
         }
         //插入推广信息
-        SpreadUser uo = new SpreadUser();
+        /*SpreadUser uo = new SpreadUser();
         uo.setOpenid(user.getOpenid());
         uo.setSubscribe_scene(wxMsgUtil.EVENT_TYPE_SCAN);
         uo.setReference(spreadUser.getOpenid());
-        userService.insertSpreadInfo(uo);
+        userService.insertSpreadInfo(uo);*/
 
         //查询推广人的推广次数
-        Integer spreadNum = userService.querySpreadNum(spreadUser.getOpenid());
-        TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(), user.getNickname(), spreadNum, spreadUser.getOpenid());
+        /*Integer spreadNum = userService.querySpreadNum(spreadUser.getOpenid());
+        TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(), user.getNickname(), spreadNum, spreadUser.getOpenid());*/
     }
 
     /**
@@ -329,5 +390,37 @@ public class WxCoreServiceImpl implements WxCoreService {
 
         JSONObject json = JSONObject.parseObject(result);
         return json;
+    }
+
+    /**
+     * 保存关注的相关信息
+     *
+     * @param temp
+     * @param eventKey
+     * @return stationId
+     */
+    private void saveSubscribeBusiness(User temp, String eventKey) throws Exception {
+        //判断是否是通过带参数的二维码进行扫描关注的
+        if (StringUtils.isNotEmpty(eventKey)) {
+            String[] arr = eventKey.split("_");
+            if (arr.length > 0) {
+                //推广营销
+                if (StringUtils.equals(Integer.toString(QrCodeEnum.userSpread.getValue()), arr[0])) {
+                    SpreadUser spreadUser = new SpreadUser();
+                    User user = userService.getById(Long.valueOf(arr[1]));
+                    if (user != null) {
+                        spreadUser.setUserId(user.getId());//推广人员
+                        spreadUser.setSpreadUserId(126L);//被推广人员
+                        spreadUser.setCreateDate(new Date());
+                        //此处直接保存，没有校验，因为temp一定是一个新用户
+                        spreadUserService.save(spreadUser);
+
+                        //查询推广人的推广次数
+                        Integer spreadCount = userService.querySpreadCount(spreadUser.getUserId());
+                        TemplateUtil.sendSpreadTemplateMsg(user.getNickname(), user.getNickname(), spreadCount, user.getOpenid());
+                    }
+                }
+            }
+        }
     }
 }

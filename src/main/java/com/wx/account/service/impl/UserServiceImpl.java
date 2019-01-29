@@ -7,7 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.wx.account.dto.TicketInfo;
 import com.wx.account.mapper.SpreadUserMapper;
 import com.wx.account.mapper.UserMapper;
-import com.wx.account.model.SpreadUser;
 import com.wx.account.model.User;
 import com.wx.account.util.ConstantUtils;
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ public class UserServiceImpl {
     private UserMapper userMapper;
 
     @Autowired
-    private SpreadUserMapper userOtherMapper;
+    private SpreadUserMapper spreadUserMapper;
 
 
     /**
@@ -137,7 +136,7 @@ public class UserServiceImpl {
      */
     public void unSubscribe(String openid) {
         userMapper.unSubscribe(openid);//修改用户状态
-        //userOtherMapper.updateSpreadAction(openid);//用户推广重置
+        //spreadUserMapper.updateSpreadAction(openid);//用户推广重置
     }
 
     /**
@@ -154,19 +153,62 @@ public class UserServiceImpl {
     /**
      * 保存推广信息
      *
-     * @param uo
+     * @param 
      */
-    public void insertSpreadInfo(SpreadUser uo) {
+    /*public void insertSpreadInfo(SpreadUser uo) {
         //如果存在则不进行操作
-        SpreadUser userOtherDB = userOtherMapper.querySpreadInfoByOpenid(uo.getOpenid(), uo.getReference());
+        SpreadUser userOtherDB = spreadUserMapper.querySpreadInfoByOpenid(uo.getOpenid(), uo.getReference());
 
-        int result = userOtherMapper.insert(uo);
+        int result = spreadUserMapper.insert(uo);
         if (result < 0) {
             logger.error("save spreadInfo is fail and params is " + uo.toString());
         }
+    }*/
+
+    public Integer querySpreadCount(Long id) {
+
+        return spreadUserMapper.querySpreadCount(id);
     }
 
-    public Integer querySpreadNum(String openid) {
-        return userOtherMapper.querySpreadNum(openid);
+    /**
+     * 获取关注用户的基本信息
+     *
+     * @param openId
+     * @return
+     */
+    public static User getSubScribeUserInfo(String openId) {
+        logger.info("开始获取关注用户的信息，openid:" + openId);
+
+        String userInfoUrl = String.format(ConstantUtils.USER_INFO_URL, ConstantUtils.accessToken, openId);
+        //获取用户信息
+        String result = HttpUtil.get(userInfoUrl);
+        User user = null;
+
+        if (result != null) {
+            JSONObject json = JSONObject.parseObject(result);
+            try {
+                user = JSONObject.parseObject(json.toJSONString(), User.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.error("获取token失败 errcode:{" + json.get("errcode").toString() + "} errmsg:{" + json.get("errmsg").toString() + "}");
+            }
+
+        } else {
+            logger.error("获取用户信息失败");
+        }
+        return user;
+    }
+
+    public List<User> selectList(User temp) {
+
+        return userMapper.selectList(temp);
+    }
+
+    public void saveUser(User wxUser) {
+        userMapper.save(wxUser);
+    }
+
+    public User getById(Long userId) {
+        return userMapper.getById(userId);
     }
 }

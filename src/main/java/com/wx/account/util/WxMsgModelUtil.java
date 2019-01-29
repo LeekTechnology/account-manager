@@ -1,21 +1,12 @@
 package com.wx.account.util;
 
 import cn.hutool.core.date.DateUtil;
-import com.google.common.collect.Lists;
 import com.wx.account.Message.WxMsgInfo;
-import com.wx.account.Message.messagepackage.Article;
-import com.wx.account.Message.messagepackage.NewsMessage;
 import com.wx.account.Message.messagepackage.TextMessage;
-import com.wx.account.dto.TicketInfo;
-import com.wx.account.model.User;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 封装微信回复消息，各种回复消息对应不同的方法
@@ -51,7 +42,7 @@ public class WxMsgModelUtil {
      * @Description: 用户关注时发送的图文消息
      * @Return: 用户关注后发送的提示绑定用户的图文消息
      */
-    public String followResponseMessageModel(WxMsgInfo wxMsgInfo, User user) {
+   /* public String followResponseMessageModel(WxMsgInfo wxMsgInfo, User user) {
         // 关注之后向用户发送专属二维码
         NewsMessage newsMessage = new NewsMessage();
         newsMessage.setToUserName(wxMsgInfo.getFromUserName());
@@ -86,6 +77,6 @@ public class WxMsgModelUtil {
         newsMessage.setArticleCount(articleList.size());
         newsMessage.setArticles(articleList);
         return weixinMessageUtil.newsMessageToXml(newsMessage);
-    }
+    }*/
 
 }

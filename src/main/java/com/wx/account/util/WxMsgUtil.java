@@ -7,7 +7,6 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.xml.PrettyPrintWriter;
 import com.thoughtworks.xstream.io.xml.XppDriver;
 import com.wx.account.Message.messagepackage.*;
-import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -112,7 +111,7 @@ public class WxMsgUtil {
     /**
      * 事件类型：scan(关注用户扫描带参二维码)
      */
-    public final String EVENT_TYPE_SCAN = "scan";
+    public final String EVENT_TYPE_SCAN = "SCAN";
 
     /**
      * 事件类型：location(上报地理位置)

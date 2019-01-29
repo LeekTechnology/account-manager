@@ -26,17 +26,11 @@ public interface SpreadUserMapper {
     int updateByPrimaryKey(SpreadUser record);
 
     /**
-     * 重置用户推广信息
-     * @param openid
-     */
-    void updateSpreadAction(@Param(value = "openid") String openid);
-
-    /**
      * 查询推广次数
-     * @param openid
+     * @param id
      * @return
      */
-    Integer querySpreadNum(@Param(value = "openid")String openid);
+    Integer querySpreadCount(@Param(value = "id")Long id);
 
     /**
      * 根据订阅者和推广者的openid查询数据

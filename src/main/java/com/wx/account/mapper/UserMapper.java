@@ -50,4 +50,11 @@ public interface UserMapper {
      */
     List<User> selectList(@Param(value = "user")User user);
 
+    /**
+     * 根据ID查询用户
+     *
+     * @param userId
+     * @return
+     */
+    User getById(@Param("id") Long userId);
 }

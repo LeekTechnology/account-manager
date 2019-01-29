@@ -3,36 +3,22 @@
 <mapper namespace="com.wx.account.mapper.SpreadUserMapper">
   <resultMap id="BaseResultMap" type="com.wx.account.model.SpreadUser">
     <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="openid" jdbcType="VARCHAR" property="openid" />
-    <result column="subscribe_scene" jdbcType="VARCHAR" property="subscribe_scene" />
-    <result column="reference" jdbcType="VARCHAR" property="reference" />
-    <result column="operator_time" jdbcType="TIMESTAMP" property="operator_time" />
-    <result column="action" jdbcType="BIT" property="action" />
+    <id column="user_id" jdbcType="BIGINT" property="userId" />
+    <id column="spread_user_id" jdbcType="BIGINT" property="spreadUserId" />
+    <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+
   </resultMap>
   <sql id="Base_Column_List">
-    id, openid, subscribe_scene, reference, operator_time, action
+    id, user_id, spread_user_id, create_date
   </sql>
 
   <insert id="insert" parameterType="com.wx.account.model.SpreadUser">
-    insert into t_spread_user (id, openid, subscribe_scene,
-      reference)
-    values (#{id,jdbcType=BIGINT}, #{openid,jdbcType=VARCHAR}, #{subscribe_scene,jdbcType=VARCHAR}, 
-      #{reference,jdbcType=VARCHAR})
+    insert into t_spread_user (id, user_id, spread_user_id,create_date)
+    values (#{id}, #{userId}, #{spreadUserId},#{createDate})
   </insert>
 
-  <update id="updateSpreadAction">
-    update t_spread_user set action = 1 where openid = #{openid}
-  </update>
-
-  <select id="querySpreadInfoByOpenid" resultType="com.wx.account.model.SpreadUser">
-    SELECT
-    <include refid="Base_Column_List"/>
-    FROM `t_spread_user` where ((openid = #{openid} and reference = #{reference}) or (openid = #{reference} and reference = #{openid})) and action != 1;
-  </select>
-
-
-  <select id="querySpreadNum" resultType="integer">
-    select count(*) from t_spread_user where reference = #{openid} and action != 1
+  <select id="querySpreadCount" resultType="integer">
+    select count(*) from t_spread_user where user_id = #{id}
   </select>
 
 

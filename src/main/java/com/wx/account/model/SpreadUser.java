@@ -13,14 +13,9 @@ public class SpreadUser {
 
     private Long id;
 
-    private String openid;
+    private Long userId;
 
-    private String subscribe_scene;
+    private Long spreadUserId;
 
-    private String reference;
-
-    private Date operator_time;
-
-    private Integer action;
-
+    private Date createDate;
 }
