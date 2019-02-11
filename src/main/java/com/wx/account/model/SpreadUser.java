@@ -11,8 +11,6 @@ import java.util.Date;
 @Data
 public class SpreadUser {
 
-    private Long id;
-
     private Long userId;
 
     private Long spreadUserId;

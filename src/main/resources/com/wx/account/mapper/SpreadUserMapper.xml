@@ -2,25 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wx.account.mapper.SpreadUserMapper">
   <resultMap id="BaseResultMap" type="com.wx.account.model.SpreadUser">
-    <id column="id" jdbcType="BIGINT" property="id" />
     <id column="user_id" jdbcType="BIGINT" property="userId" />
     <id column="spread_user_id" jdbcType="BIGINT" property="spreadUserId" />
     <result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
-
   </resultMap>
   <sql id="Base_Column_List">
-    id, user_id, spread_user_id, create_date
+    user_id, spread_user_id, create_date
   </sql>
 
   <insert id="insert" parameterType="com.wx.account.model.SpreadUser">
-    insert into t_spread_user (id, user_id, spread_user_id,create_date)
-    values (#{id}, #{userId}, #{spreadUserId},#{createDate})
+    insert into t_spread_user (user_id, spread_user_id,create_date)
+    values (#{user.userId}, #{user.spreadUserId},#{user.createDate})
   </insert>
 
   <select id="querySpreadCount" resultType="integer">
     select count(*) from t_spread_user where user_id = #{id}
   </select>
-
-
-
 </mapper>

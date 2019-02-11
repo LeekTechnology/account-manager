@@ -15,7 +15,7 @@ public interface SpreadUserMapper {
      * @param record
      * @return
      */
-    int insert(SpreadUser record);
+    int insert(@Param(value = "user")SpreadUser record);
 
     int insertSelective(SpreadUser record);
 

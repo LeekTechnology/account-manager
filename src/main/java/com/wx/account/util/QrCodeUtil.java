@@ -113,6 +113,7 @@ public class QrCodeUtil {
         try {
             if (!qrPic.isFile() || logo == null) {
                 System.out.print("file not find !");
+                return;
             }
 
             /**

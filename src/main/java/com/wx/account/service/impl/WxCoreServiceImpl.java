@@ -93,9 +93,13 @@ public class WxCoreServiceImpl implements WxCoreService {
                     //获取用户头像用于合成二维码
                     String headimgurl = user.getHeadimgurl();
 
-                    //下载头像
-                    BufferedImage bufferedImage = ImageIO.read(new URL(headimgurl));
+                    BufferedImage bufferedImage = null;
+                    if (StringUtils.isNotEmpty(headimgurl)) {
 
+                        //下载头像
+                        bufferedImage = ImageIO.read(new URL(headimgurl));
+
+                    }
                     net.sf.json.JSONObject limitQRCode = WeiXinUtil.createLimitQRCode(QrCodeEnum.userSpread.getValue() + "_" + user.getId());
 
                     //创建二维码，并与用户头像合成新图片
@@ -125,7 +129,7 @@ public class WxCoreServiceImpl implements WxCoreService {
                     textMessage.setFromUserName(toUserName);
                     textMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_TEXT);
                     textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
-                    textMessage.setContent("再点，滚一边去！");
+                    textMessage.setContent("请输入指定文本信息");
                     respMessage = wxMsgUtil.textMessageToXml(textMessage);
                 }
             } else if (msgType.equals(wxMsgUtil.REQ_MESSAGE_TYPE_EVENT)) {
@@ -135,6 +139,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 
                 String eventKey = map.get("EventKey");
                 logger.info("eventType------>" + eventType + "and eventKey------>" + eventKey);
+
                 // 关注
                 if (eventType.equals(wxMsgUtil.EVENT_TYPE_SUBSCRIBE)) {
                     respMessage = subscribeAction(wxMsgInfo);
@@ -261,8 +266,7 @@ public class WxCoreServiceImpl implements WxCoreService {
         textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
         Integer count = 10 - (userService.querySpreadCount(wxUser.getId()));
         String text = "嗨 ，" + wxUser.getNickname() + "小同学，距离A6宝马还差\r\n" +
-                "         " + count + "个人\r\n" +
-                "加油吧小骚年【但是请不要自骚啊】";
+                "         " + count + "个人\r\n";
 
         textMessage.setContent(text);
         return wxMsgUtil.textMessageToXml(textMessage);
@@ -276,7 +280,7 @@ public class WxCoreServiceImpl implements WxCoreService {
         textMessage.setFromUserName(wxMsgInfo.getToUserName());
         textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
         textMessage.setMsgType(weixinMessageUtil.RESP_MESSAGE_TYPE_TEXT);
-        String text = "嗨 ，" + wxUser.getNickname() + "你个小狗把，已经关注过了，还扫个卵\r\n";
+        String text = "嗨，" + wxUser.getNickname() + ", 不能重复关注哦\r\n";
 
         textMessage.setContent(text);
         return wxMsgUtil.textMessageToXml(textMessage);
