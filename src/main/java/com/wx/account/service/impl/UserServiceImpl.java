@@ -1,5 +1,6 @@
 package com.wx.account.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
@@ -7,12 +8,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.wx.account.dto.TicketInfo;
 import com.wx.account.mapper.SpreadUserMapper;
 import com.wx.account.mapper.UserMapper;
+import com.wx.account.model.SpreadUser;
 import com.wx.account.model.User;
 import com.wx.account.util.ConstantUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
@@ -23,6 +26,7 @@ import java.util.List;
  * Created by supermrl on 2019/1/19.
  */
 @Service
+@Transactional
 public class UserServiceImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
@@ -137,8 +141,13 @@ public class UserServiceImpl {
      * @param openid
      */
     public void unSubscribe(String openid) {
+        User user = userMapper.selectUserByOpenid(openid);
+        if(BeanUtil.isEmpty(user)){
+            logger.info("unSubscribe user is not found");
+            return;
+        }
+        spreadUserMapper.delSpreadInfo(user.getId());//用户推广重置
         userMapper.unSubscribe(openid);//修改用户状态
-        //spreadUserMapper.updateSpreadAction(openid);//用户推广重置
     }
 
     /**
@@ -147,9 +156,9 @@ public class UserServiceImpl {
      * @param ticket
      * @return
      */
-    public User getUserByTicket(String ticket) {
-        return userMapper.getUserByTicket(ticket);
-    }
+//    public User getUserByTicket(String ticket) {
+//        return userMapper.getUserByTicket(ticket);
+//    }
 
 
     /**
@@ -157,15 +166,17 @@ public class UserServiceImpl {
      *
      * @param 
      */
-    /*public void insertSpreadInfo(SpreadUser uo) {
+    public void insertSpreadInfo(SpreadUser uo) {
         //如果存在则不进行操作
-        SpreadUser userOtherDB = spreadUserMapper.querySpreadInfoByOpenid(uo.getOpenid(), uo.getReference());
-
+        SpreadUser userOtherDB = spreadUserMapper.querySpreadInfoByOpenid(uo.getUserId(), uo.getSpreadUserId());
+        if(!BeanUtil.isEmpty(userOtherDB)){
+            return;
+        }
         int result = spreadUserMapper.insert(uo);
         if (result < 0) {
             logger.error("save spreadInfo is fail and params is " + uo.toString());
         }
-    }*/
+    }
 
     public Integer querySpreadCount(Long id) {
 
@@ -218,5 +229,9 @@ public class UserServiceImpl {
 
     public void update(User user) {
         userMapper.update(user);
+    }
+
+    public Integer querySpreadNum(Long id) {
+        return spreadUserMapper.querySpreadNum(id);
     }
 }

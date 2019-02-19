@@ -35,9 +35,23 @@ public interface SpreadUserMapper {
     /**
      * 根据订阅者和推广者的openid查询数据
      * 防止相互关注加入 or条件
-     * @param openid
-     * @param reference
+     * @param uId
+     * @param suId
      * @return
      */
-    SpreadUser querySpreadInfoByOpenid(@Param(value = "openid")String openid, @Param(value = "reference")String reference);
+    SpreadUser querySpreadInfoByOpenid(@Param(value = "uId")Long uId, @Param(value = "suId")Long suId);
+
+    /**
+     * 查询推广次数
+     * @param id
+     * @return
+     */
+    Integer querySpreadNum(@Param(value = "id")Long id);
+
+    /**
+     * 重置用户的推广信息
+     * @param id
+     * @return
+     */
+    int delSpreadInfo(@Param(value = "id")Long id);
 }

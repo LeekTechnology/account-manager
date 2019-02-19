@@ -57,4 +57,11 @@ public interface UserMapper {
      * @return
      */
     User getById(@Param("id") Long userId);
+
+    /**
+     * 根据openid查询用户信息
+     * @param openid
+     * @return
+     */
+    User selectUserByOpenid(@Param("openid")String openid);
 }

@@ -28,10 +28,11 @@
     where o.id = #{id}
   </select>
 
-  <insert id="save" parameterType="com.wx.account.model.User">
-    insert into user (id, openid, nickname, sex, city, country, province,
+  <insert id="save" parameterType="com.wx.account.model.User" keyColumn="id" keyProperty="id"
+          useGeneratedKeys="true">
+    insert into user ( openid, nickname, sex, city, country, province,
     headimgurl, ticket, subscribe_time, status)
-    values (#{id}, #{openid}, #{nickname}, #{sex}, #{city}, #{country}, #{province},
+    values ( #{openid}, #{nickname}, #{sex}, #{city}, #{country}, #{province},
     #{headimgurl}, #{ticket}, #{subscribe_time}, #{status})
   </insert>
 
@@ -118,4 +119,10 @@
   <update id="unSubscribe">
     UPDATE `user` set `status` = false where openid = #{openid};
   </update>
+
+  <select id="selectUserByOpenid" resultType="com.wx.account.model.User">
+    SELECT
+    <include refid="userMap" />
+    FROM `user` WHERE  openid = #{openid} and status = 1
+  </select>
 </mapper>

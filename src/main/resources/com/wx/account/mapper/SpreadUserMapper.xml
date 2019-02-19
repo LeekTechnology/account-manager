@@ -25,4 +25,24 @@
 	    o.user_id = #{id}
 	and u.status = 1
   </select>
+
+
+  <select id="querySpreadInfoByOpenid" resultType="com.wx.account.model.SpreadUser">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM `t_spread_user` where ((user_id = #{uId} and spread_user_id = #{suId}) or (user_id = #{suId} and spread_user_id = #{suId}))
+  </select>
+
+  <select id="querySpreadNum" resultType="integer">
+    SELECT
+        count(*)
+    FROM
+        t_spread_user
+    WHERE
+	    spread_user_id = #{id}
+  </select>
+
+  <delete id="delSpreadInfo" >
+    DELETE FROM `t_spread_user` where user_id = #{id} or spread_user_id = #{id};
+  </delete>
 </mapper>

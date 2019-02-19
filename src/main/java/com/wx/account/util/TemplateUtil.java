@@ -32,15 +32,16 @@ public class TemplateUtil {
      */
     private static String getTempleId(String title) throws Exception {
         String templateId = null;
-        String getTemplateListUrl = String.format(ConstantUtils.TemplateLListUrl, ConstantUtils.TemplateLListUrl);
+        String getTemplateListUrl = String.format(ConstantUtils.TemplateLListUrl, ConstantUtils.accessToken);
         String result = HttpUtil.get(getTemplateListUrl);
         if (StrUtil.isBlank(result)) {
             logger.error("微信服务端获取模板失败");
             throw new BusinessException(ErrorCode.TEMPLATE_GET_IS_FAIL);
         }
-
+        logger.info("template list is "+ result);
+        JSONObject resultJson = JSONObject.parseObject(result);
         //转换模板对象数组
-        List<TemplateInfo> templateInfos = JSONObject.parseArray(result, TemplateInfo.class);
+        List<TemplateInfo> templateInfos = JSONObject.parseArray(resultJson.get("template_list").toString(), TemplateInfo.class);
         if (CollUtil.isEmpty(templateInfos)) {
             logger.error("请先设置模板数据");
             throw new BusinessException(ErrorCode.TEMPLATE_DATA_IS_NULL);
