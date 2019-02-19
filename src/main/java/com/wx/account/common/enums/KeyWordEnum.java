@@ -10,7 +10,7 @@ import java.util.*;
 public enum KeyWordEnum {
 
     POSTER_TYPE(1, "海报", true),
-    NEWPERSON_TYPE(2, "初来乍到", false),
+    SPREAD_TYPE(2, "推广", true),
     PREFERENTIAL_TYPE(3, "优惠多多", false);
 
 

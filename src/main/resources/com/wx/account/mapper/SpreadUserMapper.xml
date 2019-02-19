@@ -16,6 +16,13 @@
   </insert>
 
   <select id="querySpreadCount" resultType="integer">
-    select count(*) from t_spread_user where user_id = #{id}
+    SELECT
+        count(*)
+    FROM
+        t_spread_user o
+    LEFT JOIN USER u ON o.spread_user_id = u.id
+    WHERE
+	    o.user_id = #{id}
+	and u.status = 1
   </select>
 </mapper>

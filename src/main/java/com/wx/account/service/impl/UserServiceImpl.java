@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -98,6 +99,7 @@ public class UserServiceImpl {
             try {
                 user = JSONObject.parseObject(json.toJSONString(), User.class);
                 user.setStatus(true);
+                user.setSubscribe_time(new Date(json.getIntValue("subscribe_time") * 1000L));
                 if (StrUtil.isBlank(user.getOpenid())) {
                     throw new Exception("获取用户信息失败");
                 }
@@ -189,6 +191,7 @@ public class UserServiceImpl {
             try {
                 user = JSONObject.parseObject(json.toJSONString(), User.class);
                 user.setStatus(true);
+                user.setSubscribe_time(new Date(json.getIntValue("subscribe_time") * 1000L));
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.error("获取token失败 errcode:{" + json.get("errcode").toString() + "} errmsg:{" + json.get("errmsg").toString() + "}");
