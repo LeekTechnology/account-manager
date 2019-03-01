@@ -5,13 +5,15 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.wx.account.common.enums.TemplateType;
 import com.wx.account.config.error.ErrorCode;
 import com.wx.account.dto.TemplateInfo;
 import com.wx.account.exception.BusinessException;
+import com.wx.account.model.TemplateMessage;
+import com.wx.account.model.TemplateMessageValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,37 +64,28 @@ public class TemplateUtil {
      *
      * @param spreadName
      * @param userNickname
-     * @param spreadNum
-     * @param openid
+     * @param count
+     * @param openId
      */
-    public static void sendSpreadTemplateMsg(String spreadName, String userNickname, Integer spreadNum, String openid) throws Exception {
-        JSONObject data = new JSONObject();
-        JSONObject spreadNameT = new JSONObject();
-        spreadNameT.put("value", spreadName);
-        spreadNameT.put("color", "#173177");
-
-        JSONObject userT = new JSONObject();
-        userT.put("value", userNickname);
-        userT.put("color", "#173177");
-
-        JSONObject spreadNumT = new JSONObject();
-        spreadNumT.put("value", spreadNum);
-        spreadNumT.put("color", "#173177");
-
-        data.put("spreadName", spreadNameT);
-        data.put("user", userT);
-        data.put("spreadNum", spreadNumT);
+    public static void sendSpreadTemplateMsg(String spreadName, String userNickname, Integer count, String openId) throws Exception {
 
 
-        JSONObject json = new JSONObject();
-        json.put("touser", openid);
-        json.put("template_id", getTempleId(TemplateType.SPREAD_SUCCESS.getTemplate_Title()));
-        json.put("data", data);
+        TemplateMessage tm = new TemplateMessage();
+        tm.setTouser(openId);
+        tm.setTemplate_id("EP0aDhuelqGN1IY8liG3fGOarH1fosBnGjSwIylLyjI");
 
+        Map<String, TemplateMessageValue> data = new LinkedHashMap<String, TemplateMessageValue>();
+
+        data.put("title", new TemplateMessageValue("推广详情" + "\n"));
+
+        data.put("spread", new TemplateMessageValue(spreadName));
+
+        data.put("count", new TemplateMessageValue(count.toString()+" 人"));
+
+        tm.setData(data);
 
         String sendSpreadTemplateUrl = String.format(ConstantUtils.templateSendUrl, ConstantUtils.accessToken);
-        logger.info("send spreadUser message body is " + json.toJSONString());
-        String result = HttpUtil.post(sendSpreadTemplateUrl, json.toJSONString());
+        String result = HttpUtil.post(sendSpreadTemplateUrl, JSONObject.toJSONString(tm));
         if (!StrUtil.isBlank(result)) {
             JSONObject resultJson = JSONObject.parseObject(result);
             String errcode = resultJson.get("errcode").toString();

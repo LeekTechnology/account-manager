@@ -1,7 +1,6 @@
 package com.wx.account.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.wx.account.Message.WxMsgInfo;
 import com.wx.account.Message.messagepackage.Image;
@@ -108,10 +107,10 @@ public class WxCoreServiceImpl implements WxCoreService {
                     net.sf.json.JSONObject limitQRCode = WeiXinUtil.createLimitQRCode(QrCodeEnum.userSpread.getValue() + "_" + user.getId());
 
                     //创建二维码，并与用户头像合成新图片
-                    QrCodeUtil.createQrCodeImage(limitQRCode.getString("url"), "F:\\image\\11.png", bufferedImage, 300, 300);
+                    QrCodeUtil.createQrCodeImage(limitQRCode.getString("url"), "F:\\images\\11.png", bufferedImage, 300, 300);
 
                     //将图片填充至海报
-                    QrCodeUtil.addLogoToQRCodeBound(new File("F:\\image\\55.png"), new File("F:\\image\\11.png"), new LogoConfig());
+                    QrCodeUtil.addLogoToQRCodeBound(new File("F:\\image\\55.png"), new File("F:\\images\\11.png"), new LogoConfig());
 
                     //上传微信服务器
                     JSONObject json = upload("F:\\image\\55.png ", ConstantUtils.accessToken, "image");
@@ -154,15 +153,10 @@ public class WxCoreServiceImpl implements WxCoreService {
                 else if (eventType.equals(wxMsgUtil.EVENT_TYPE_UNSUBSCRIBE)) {
                     //更新用户信息
                     userService.unSubscribe(fromUserName);
-                    String respContent = fromUserName + "用户取消关注";
+                    //respContent = fromUserName + "用户取消关注";
                     logger.info("取消关注: openid is " + fromUserName);
-                    TextMessage textMessage = new TextMessage();
-                    textMessage.setToUserName(fromUserName);
-                    textMessage.setFromUserName(toUserName);
-                    textMessage.setMsgType(wxMsgUtil.RESP_MESSAGE_TYPE_TEXT);
-                    textMessage.setCreateTime(Long.valueOf(DateUtil.format(DateUtil.date(), ConstantUtils.TIME_REQ_PATTERN)));
-                    textMessage.setContent(respContent);
-                    respMessage = wxMsgUtil.textMessageToXml(textMessage);
+                    /*textMessage.setContent(respContent);
+                    respMessage = wxMsgUtil.textMessageToXml(textMessage);*/
                 }
             }
         } catch (Exception e) {
@@ -226,6 +220,7 @@ public class WxCoreServiceImpl implements WxCoreService {
 
         User temp = new User();
         temp.setOpenid(wxMsgInfo.getFromUserName());
+
         List<User> users = userService.selectList(temp);
 
         //如果用户不存在则保存当前用户的数据
@@ -237,9 +232,8 @@ public class WxCoreServiceImpl implements WxCoreService {
             List<User> tempUsers = userService.selectList(temp);
 
             //保存推广用户关系表
-            //saveSubscribeBusiness(tempUsers.get(0), eventKey);
-            //保存用户推广关系并发送消息
-            dealwithSpreadMessage(wxUser,eventKey);
+            saveSubscribeBusiness(tempUsers.get(0), eventKey);
+
             //返回欢迎文本信息
             respMessage = scanSubscribeAction(tempUsers.get(0));
 
@@ -259,7 +253,6 @@ public class WxCoreServiceImpl implements WxCoreService {
         }
         return respMessage;
     }
-
 
     public String scanSubscribeRespMessage(User wxUser) throws Exception {
 
@@ -320,35 +313,6 @@ public class WxCoreServiceImpl implements WxCoreService {
 
         textMessage.setContent(text);
         return wxMsgUtil.textMessageToXml(textMessage);
-    }
-
-    /**
-     * 处理返回推广者消息
-     * @param user 关注用户
-     * @param eventKey 携带推广者id qrscene_1_179--179即为推广者id
-     * @throws Exception
-     */
-    private void dealwithSpreadMessage(User user, String eventKey) throws Exception {
-        if(StrUtil.isBlank(eventKey)){
-            return;
-        }
-        logger.info("eventkey is "+eventKey);
-        //查询推广人信息
-        String[] split = eventKey.split("_");
-        User spreadUser = userService.getById(Long.valueOf(split[split.length-1]));
-        if (spreadUser == null) {
-            return;
-        }
-        //插入推广信息
-        SpreadUser su = new SpreadUser();
-        su.setUserId(user.getId());
-        su.setSpreadUserId(spreadUser.getId());
-        su.setCreateDate(new Date());
-        userService.insertSpreadInfo(su);
-
-        //查询推广人的推广次数
-        Integer spreadNum = userService.querySpreadNum(spreadUser.getId());
-        TemplateUtil.sendSpreadTemplateMsg(spreadUser.getNickname(), user.getNickname(), spreadNum, spreadUser.getOpenid());
     }
 
     /**
@@ -458,9 +422,21 @@ public class WxCoreServiceImpl implements WxCoreService {
                     spreadUser.setCreateDate(new Date());
                     //此处直接保存，没有校验，因为temp一定是一个新用户
                     spreadUserService.save(spreadUser);
+                    dealwithSpreadMessage(user, temp, userService.querySpreadCount(user.getId()));
                     logger.debug("推广信息：{}", JSONObject.toJSONString(spreadUser));
                 }
             }
         }
+    }
+
+    /**
+     * 处理返回推广者消息
+     *
+     * @param user        推广者
+     * @param temp        被推广者
+     * @param count       推广数量
+     */
+    private void dealwithSpreadMessage(User user, User temp, Integer count) throws Exception {
+        TemplateUtil.sendSpreadTemplateMsg(temp.getNickname(), user.getNickname(), count, user.getOpenid());
     }
 }
