@@ -122,7 +122,7 @@
 
   <select id="selectUserByOpenid" resultType="com.wx.account.model.User">
     SELECT
-    <include refid="userMap" />
+    <include refid="table_column" />
     FROM `user` WHERE  openid = #{openid} and status = 1
   </select>
 </mapper>
